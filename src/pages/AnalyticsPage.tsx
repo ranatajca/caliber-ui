@@ -40,7 +40,7 @@ const AnalyticsPage = () => {
   const navigate = useNavigate();
   const [activeTimeFilter, setActiveTimeFilter] = useState("7D");
   const [selectedTeam, setSelectedTeam] = useState("Onboarding team");
-
+  const [expandedObjection, setExpandedObjection] = useState<number | null>(null);
   const maxBarHeight = 100;
   const maxValue = Math.max(...weeklyData.map(d => d.passed + d.failed));
 
@@ -247,17 +247,60 @@ const AnalyticsPage = () => {
             </CardHeader>
             <CardContent className="space-y-3 md:space-y-4">
               {objectionHandling.map((item, index) => (
-                <div key={index} className="flex items-start gap-2 md:gap-3 cursor-pointer hover:bg-muted p-2 -m-2 rounded-lg transition-colors" onClick={() => toast.info(`Viewing details for: "${item.objection.substring(0, 30)}..."`)}>
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-muted flex items-center justify-center text-[10px] md:text-xs font-medium flex-shrink-0">
-                    {item.percentage}%
+                <div key={index}>
+                  <div 
+                    className="flex items-start gap-2 md:gap-3 cursor-pointer hover:bg-muted p-2 -m-2 rounded-lg transition-colors" 
+                    onClick={() => setExpandedObjection(expandedObjection === index ? null : index)}
+                  >
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-muted flex items-center justify-center text-[10px] md:text-xs font-medium flex-shrink-0">
+                      {item.percentage}%
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs md:text-sm">{item.objection}</p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">
+                        {item.success} of {item.total}
+                      </p>
+                    </div>
+                    <ChevronRight className={cn(
+                      "w-3 h-3 md:w-4 md:h-4 text-muted-foreground flex-shrink-0 transition-transform duration-200",
+                      expandedObjection === index && "rotate-90"
+                    )} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs md:text-sm truncate">{item.objection}</p>
-                    <p className="text-[10px] md:text-xs text-muted-foreground">
-                      {item.success} of {item.total}
-                    </p>
-                  </div>
-                  <ChevronRight className="w-3 h-3 md:w-4 md:h-4 text-muted-foreground flex-shrink-0" />
+                  {expandedObjection === index && (
+                    <div className="mt-2 ml-10 md:ml-12 p-3 bg-muted/50 rounded-lg animate-fade-in">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Success rate</span>
+                          <span className="font-medium">{item.percentage}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-accent rounded-full transition-all duration-500"
+                            style={{ width: `${item.percentage}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Successful handling</span>
+                          <span className="text-success font-medium">{item.success} calls</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Failed handling</span>
+                          <span className="text-destructive font-medium">{item.total - item.success} calls</span>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-full mt-2 text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate("/ai-roleplays");
+                          }}
+                        >
+                          Practice this objection
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </CardContent>
