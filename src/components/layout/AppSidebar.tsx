@@ -39,8 +39,8 @@ const AppSidebar = () => {
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
         <NavLink to="/home" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-sidebar-primary-foreground" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden">
+            <img src="/favicon.png" alt="Caliber" className="w-full h-full object-cover" />
           </div>
           {!collapsed && (
             <span className="text-xl font-display font-bold text-sidebar-foreground">Caliber</span>
