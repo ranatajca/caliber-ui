@@ -6,10 +6,12 @@ const AppLayout = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppSidebar />
-      <AppHeader userName="Saad" />
-      <main className="ml-60 pt-14 min-h-screen">
-        <Outlet />
-      </main>
+      <div className="ml-64 transition-all duration-300">
+        <AppHeader userName="Saad" />
+        <main className="min-h-[calc(100vh-4rem)]">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };
