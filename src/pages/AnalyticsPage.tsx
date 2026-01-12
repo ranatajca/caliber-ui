@@ -676,7 +676,7 @@ const AnalyticsPage = () => {
                           className="w-full mt-2 text-xs"
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate("/ai-roleplays");
+                            navigate("/roleplays");
                             toast.success("Starting practice session for this objection");
                           }}
                         >
