@@ -31,36 +31,36 @@ const StartRoleplay = () => {
   };
 
   return (
-    <div className="p-6 animate-fade-in">
+    <div className="p-4 md:p-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
+        <div className="flex items-center gap-3 md:gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/roleplays")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-display font-bold">Cold Call Simulation</h1>
+              <h1 className="text-lg md:text-xl font-display font-bold">Cold Call Simulation</h1>
               <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs font-medium rounded">
                 DEMO
               </span>
             </div>
-            <p className="text-sm text-muted-foreground">Practice your sales skills with AI</p>
+            <p className="text-xs md:text-sm text-muted-foreground">Practice your sales skills with AI</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="gap-2" onClick={() => navigate("/roleplays/new")}>
+        <div className="flex items-center gap-2 md:gap-3">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/roleplays/new")}>
             <Settings2 className="w-4 h-4" />
-            Customize buyer bot
+            <span className="hidden sm:inline">Customize</span>
           </Button>
-          <Button variant="outline" onClick={() => navigate("/calls")}>
-            View calls
+          <Button variant="outline" size="sm" onClick={() => navigate("/calls")}>
+            <span className="hidden sm:inline">View</span> Calls
           </Button>
         </div>
       </div>
 
       {/* Main Card */}
-      <div className="max-w-lg mx-auto mt-12">
+      <div className="max-w-lg mx-auto mt-6 md:mt-12">
         <Card className="overflow-hidden">
           {!isCallActive ? (
             <CardContent className="p-8 text-center">

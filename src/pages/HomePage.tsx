@@ -69,29 +69,29 @@ const HomePage = () => {
   ];
 
   return (
-    <div className="p-6 space-y-8 animate-fade-in">
+    <div className="p-4 md:p-6 space-y-6 md:space-y-8 animate-fade-in">
       {/* Welcome Section */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold">Good afternoon, Saad 👋</h1>
+          <h1 className="text-2xl md:text-3xl font-display font-bold">Good afternoon, Saad 👋</h1>
           <p className="text-muted-foreground mt-1">
             You're on a 5-day streak! Keep it going.
           </p>
         </div>
-        <Button onClick={() => navigate("/roleplays")} className="gap-2">
+        <Button onClick={() => navigate("/roleplays")} className="gap-2 w-full sm:w-auto">
           <Play className="w-4 h-4" />
           Start Practice
         </Button>
       </div>
 
       {/* Today's Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {todayStats.map((stat) => (
           <Card key={stat.label} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => toast.info(`Viewing ${stat.label} details`)}>
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-10 h-10 rounded-xl bg-muted flex items-center justify-center ${stat.color}`}>
-                  <stat.icon className="w-5 h-5" />
+            <CardContent className="p-4 md:p-5">
+              <div className="flex items-center justify-between mb-2 md:mb-3">
+                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl bg-muted flex items-center justify-center ${stat.color}`}>
+                  <stat.icon className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
                 {stat.change && (
                   <span className="text-xs font-medium text-success flex items-center gap-1">
@@ -100,8 +100,8 @@ const HomePage = () => {
                   </span>
                 )}
               </div>
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
+              <p className="text-xl md:text-2xl font-bold">{stat.value}</p>
+              <p className="text-xs md:text-sm text-muted-foreground">{stat.label}</p>
             </CardContent>
           </Card>
         ))}
@@ -109,56 +109,56 @@ const HomePage = () => {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-lg font-display font-semibold mb-4">Daily Warmups & Skill Drills</h2>
-        <div className="grid grid-cols-4 gap-4">
+        <h2 className="text-base md:text-lg font-display font-semibold mb-3 md:mb-4">Daily Warmups & Skill Drills</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {quickActions.map((action) => (
             <Card 
               key={action.title}
               className="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 group"
               onClick={action.onClick}
             >
-              <CardContent className="p-5">
-                <div className={`w-12 h-12 rounded-xl ${action.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <action.icon className="w-6 h-6 text-white" />
+              <CardContent className="p-4 md:p-5">
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl ${action.color} flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 transition-transform`}>
+                  <action.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
-                <h3 className="font-semibold mb-1">{action.title}</h3>
-                <p className="text-sm text-muted-foreground">{action.description}</p>
+                <h3 className="font-semibold mb-1 text-sm md:text-base">{action.title}</h3>
+                <p className="text-xs md:text-sm text-muted-foreground">{action.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Recent Calls */}
-        <Card className="col-span-2">
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="text-lg">Recent Calls</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/calls")} className="gap-1">
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex-row items-center justify-between pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg">Recent Calls</CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/calls")} className="gap-1 text-xs md:text-sm">
               View all <ChevronRight className="w-4 h-4" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 md:space-y-3">
             {recentCalls.map((call) => (
               <div 
                 key={call.id}
                 onClick={() => navigate(`/calls/${call.id}`)}
-                className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted cursor-pointer transition-colors"
+                className="flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-xl hover:bg-muted cursor-pointer transition-colors"
               >
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-semibold text-primary">
+                <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-semibold text-primary text-sm md:text-base">
                   {call.buyer.split(" ").map(n => n[0]).join("")}
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium">{call.buyer}</p>
-                  <p className="text-sm text-muted-foreground">{call.role}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm md:text-base truncate">{call.buyer}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground truncate">{call.role}</p>
                 </div>
-                <div className="text-right">
-                  <p className={`font-bold ${call.score >= 80 ? "text-success" : call.score >= 70 ? "text-warning" : "text-destructive"}`}>
+                <div className="text-right hidden sm:block">
+                  <p className={`font-bold text-sm md:text-base ${call.score >= 80 ? "text-success" : call.score >= 70 ? "text-warning" : "text-destructive"}`}>
                     {call.score}
                   </p>
                   <p className="text-xs text-muted-foreground">{call.duration}</p>
                 </div>
-                <p className="text-xs text-muted-foreground w-20 text-right">{call.time}</p>
+                <p className="text-xs text-muted-foreground w-16 md:w-20 text-right hidden md:block">{call.time}</p>
               </div>
             ))}
           </CardContent>
@@ -166,31 +166,31 @@ const HomePage = () => {
 
         {/* Recommended Roleplays */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Star className="w-5 h-5 text-amber-500" />
+          <CardHeader className="pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg flex items-center gap-2">
+              <Star className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
               Recommended for You
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 md:space-y-3">
             {recommendedRoleplays.map((roleplay) => (
               <div 
                 key={roleplay.id}
                 onClick={() => navigate(`/roleplays/${roleplay.id}/start`)}
-                className="p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/50 cursor-pointer transition-all group"
+                className="p-2 md:p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/50 cursor-pointer transition-all group"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium">{roleplay.buyer}</p>
-                  <span className={`badge-trait ${roleplay.trait === "Nice" ? "badge-nice" : "badge-rude"}`}>
+                <div className="flex items-center justify-between mb-1 md:mb-2">
+                  <p className="font-medium text-sm md:text-base">{roleplay.buyer}</p>
+                  <span className={`badge-trait text-xs ${roleplay.trait === "Nice" ? "badge-nice" : "badge-rude"}`}>
                     {roleplay.trait}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">{roleplay.role}</p>
+                <p className="text-xs md:text-sm text-muted-foreground mb-1 md:mb-2">{roleplay.role}</p>
                 <div className="flex items-center justify-between">
-                  <span className={`badge-trait ${roleplay.type === "Cold Call" ? "badge-cold" : "badge-warm"}`}>
+                  <span className={`badge-trait text-xs ${roleplay.type === "Cold Call" ? "badge-cold" : "badge-warm"}`}>
                     {roleplay.type}
                   </span>
-                  <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs">
                     Start <Play className="w-3 h-3 ml-1" />
                   </Button>
                 </div>

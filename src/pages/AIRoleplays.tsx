@@ -127,70 +127,70 @@ const AIRoleplays = () => {
   });
 
   return (
-    <div className="p-6 animate-fade-in">
+    <div className="p-4 md:p-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-display font-bold">AI Roleplays</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl md:text-2xl font-display font-bold">AI Roleplays</h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-1">
             Practice with AI-powered buyer personas
           </p>
         </div>
-        <Button onClick={() => navigate("/roleplays/new")} className="gap-2">
+        <Button onClick={() => navigate("/roleplays/new")} className="gap-2 w-full sm:w-auto">
           <Plus className="w-4 h-4" />
           Create Custom Bot
         </Button>
       </div>
 
       {/* View Toggle & Search */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2 bg-muted p-1 rounded-full">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2 bg-muted p-1 rounded-full w-full sm:w-auto">
           <button
             onClick={() => setViewMode("quick")}
-            className={cn("tab-pill", viewMode === "quick" && "active")}
+            className={cn("tab-pill flex-1 sm:flex-none", viewMode === "quick" && "active")}
           >
             Quick access
           </button>
           <button
             onClick={() => setViewMode("all")}
-            className={cn("tab-pill", viewMode === "all" && "active")}
+            className={cn("tab-pill flex-1 sm:flex-none", viewMode === "all" && "active")}
           >
             All bots
           </button>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-6 mb-6 border-b border-border pb-4">
+      {/* Filters - Horizontal scroll on mobile */}
+      <div className="flex items-center gap-4 md:gap-6 mb-6 border-b border-border pb-4 overflow-x-auto">
         {filters.map((filter) => (
           <button
             key={filter.id}
             onClick={() => setActiveFilter(filter.id)}
             className={cn(
-              "flex items-center gap-2 text-sm font-medium transition-colors pb-4 -mb-4 border-b-2",
+              "flex items-center gap-2 text-xs md:text-sm font-medium transition-colors pb-4 -mb-4 border-b-2 whitespace-nowrap",
               activeFilter === filter.id
                 ? "text-primary border-primary"
                 : "text-muted-foreground border-transparent hover:text-foreground"
             )}
           >
             {filter.icon && <filter.icon className="w-4 h-4" />}
-            {filter.label} - {filter.count}
+            <span className="hidden sm:inline">{filter.label}</span>
+            <span className="sm:hidden">{filter.label.split(" ")[0]}</span>
+            <span className="hidden md:inline">- {filter.count}</span>
           </button>
         ))}
         
-        <div className="ml-auto">
+        <div className="ml-auto hidden md:block">
           <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.info("Filter options coming soon!")}>
             <Plus className="w-4 h-4" />
             Add filter
@@ -199,7 +199,7 @@ const AIRoleplays = () => {
       </div>
 
       {/* Personas Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
         {filteredPersonas.map((persona, index) => (
           <PersonaCard 
             key={persona.id} 
@@ -262,37 +262,37 @@ const PersonaCard = ({
       {/* Sky gradient header */}
       <div className="persona-header">
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center text-2xl font-bold text-primary border-4 border-white">
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white shadow-lg flex items-center justify-center text-xl md:text-2xl font-bold text-primary border-4 border-white">
             {persona.name.split(" ").map(n => n[0]).join("")}
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-3 md:p-4">
         <div className="flex items-center justify-center gap-1 mb-2">
-          <h3 className="font-semibold text-center">{persona.name}</h3>
+          <h3 className="font-semibold text-center text-sm md:text-base">{persona.name}</h3>
           <span className="px-1.5 py-0.5 bg-accent text-accent-foreground text-[10px] font-bold rounded">AI</span>
         </div>
-        <p className="text-sm text-muted-foreground text-center mb-3">
+        <p className="text-xs md:text-sm text-muted-foreground text-center mb-2 md:mb-3">
           {persona.role} @ {persona.company}
         </p>
 
         {/* Badges */}
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <span className={cn("badge-trait", getCallTypeBadge())}>
+        <div className="flex items-center justify-center gap-2 mb-2 md:mb-3 flex-wrap">
+          <span className={cn("badge-trait text-xs", getCallTypeBadge())}>
             {persona.callType === "cold" && <Snowflake className="w-3 h-3 mr-1" />}
             {persona.callType === "warm" && <Flame className="w-3 h-3 mr-1" />}
             {persona.callType === "discovery" && <Target className="w-3 h-3 mr-1" />}
-            {persona.callType.charAt(0).toUpperCase() + persona.callType.slice(1)} Call
+            {persona.callType.charAt(0).toUpperCase() + persona.callType.slice(1)}
           </span>
-          <span className={cn("badge-trait", getPersonalityBadge())}>
+          <span className={cn("badge-trait text-xs", getPersonalityBadge())}>
             {persona.personality.charAt(0).toUpperCase() + persona.personality.slice(1)}
           </span>
         </div>
 
         {/* Tags */}
-        <div className="flex flex-wrap gap-1 justify-center mb-3">
+        <div className="flex flex-wrap gap-1 justify-center mb-2 md:mb-3">
           {persona.tags.slice(0, 2).map((tag) => (
             <span key={tag} className="text-xs text-muted-foreground cursor-pointer hover:text-primary" onClick={() => toast.info(`Filtering by ${tag}`)}>
               {tag}
@@ -304,7 +304,7 @@ const PersonaCard = ({
         </div>
 
         {/* Description */}
-        <p className="text-xs text-muted-foreground text-center mb-4 line-clamp-2">
+        <p className="text-xs text-muted-foreground text-center mb-3 md:mb-4 line-clamp-2">
           {persona.description}
         </p>
 
@@ -312,15 +312,16 @@ const PersonaCard = ({
         <div className="flex items-center gap-2">
           <Button 
             onClick={onStart}
-            className="flex-1 gap-2"
+            className="flex-1 gap-2 text-xs md:text-sm"
             variant="secondary"
+            size="sm"
           >
             <Phone className="w-4 h-4" />
             Start a call
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9">
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
