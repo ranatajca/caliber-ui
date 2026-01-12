@@ -226,6 +226,84 @@ const AnalyticsPage = () => {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
+          {/* Customize Goals Button - Now in header */}
+          <Dialog open={scoreCardDialogOpen} onOpenChange={setScoreCardDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Settings2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Customize Goals</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Customize Score Card</DialogTitle>
+                <DialogDescription>
+                  Set your personal targets and alert thresholds
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-6 py-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Target Score</Label>
+                    <span className="text-sm font-medium text-success">{scoreCardSettings.targetScore.toFixed(1)}</span>
+                  </div>
+                  <Slider
+                    value={[scoreCardSettings.targetScore]}
+                    onValueChange={([value]) => setScoreCardSettings(s => ({ ...s, targetScore: value }))}
+                    min={1}
+                    max={10}
+                    step={0.5}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">Your performance goal to achieve</p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Alert Threshold</Label>
+                    <span className="text-sm font-medium text-warning">{scoreCardSettings.alertThreshold.toFixed(1)}</span>
+                  </div>
+                  <Slider
+                    value={[scoreCardSettings.alertThreshold]}
+                    onValueChange={([value]) => setScoreCardSettings(s => ({ ...s, alertThreshold: value }))}
+                    min={1}
+                    max={10}
+                    step={0.5}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">You'll be alerted when your score drops below this value</p>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div>
+                    <Label>Show Team Comparison</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">Compare your score with team average</p>
+                  </div>
+                  <Switch
+                    checked={scoreCardSettings.showComparison}
+                    onCheckedChange={(checked) => setScoreCardSettings(s => ({ ...s, showComparison: checked }))}
+                  />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 gap-2"
+                    onClick={() => setScoreCardSettings({ targetScore: 7.0, showComparison: true, alertThreshold: 5.0 })}
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Reset
+                  </Button>
+                  <Button 
+                    className="flex-1"
+                    onClick={() => {
+                      setScoreCardDialogOpen(false);
+                      toast.success("Score card settings saved!");
+                    }}
+                  >
+                    Save Settings
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button variant="outline" size="sm" onClick={handleExportData} className="gap-2">
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
@@ -266,113 +344,28 @@ const AnalyticsPage = () => {
 
       {/* Overview Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-        {/* Customizable Score Card - Now more prominent */}
+        {/* Score Card - Score centered as highlight */}
         <Card className={cn(
           "relative overflow-hidden transition-all hover:shadow-lg",
           performanceStatus === "success" && "ring-2 ring-success/30",
           performanceStatus === "warning" && "ring-2 ring-warning/30",
           performanceStatus === "danger" && "ring-2 ring-destructive/30"
         )}>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-start justify-between mb-1 md:mb-2">
-              <div className="flex-1">
-                <div className="flex items-center gap-1 mb-2">
-                  <p className="text-xs md:text-sm text-muted-foreground">Overall performance</p>
-                </div>
-                {/* Prominent Customize Button */}
-                <Dialog open={scoreCardDialogOpen} onOpenChange={setScoreCardDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="h-7 text-xs gap-1 w-full mt-2"
-                    >
-                      <Settings2 className="w-3 h-3" />
-                      Customize Goals
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Customize Score Card</DialogTitle>
-                      <DialogDescription>
-                        Set your personal targets and alert thresholds
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-6 py-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <Label>Target Score</Label>
-                          <span className="text-sm font-medium text-success">{scoreCardSettings.targetScore.toFixed(1)}</span>
-                        </div>
-                        <Slider
-                          value={[scoreCardSettings.targetScore]}
-                          onValueChange={([value]) => setScoreCardSettings(s => ({ ...s, targetScore: value }))}
-                          min={1}
-                          max={10}
-                          step={0.5}
-                          className="w-full"
-                        />
-                        <p className="text-xs text-muted-foreground">Your performance goal to achieve</p>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <Label>Alert Threshold</Label>
-                          <span className="text-sm font-medium text-warning">{scoreCardSettings.alertThreshold.toFixed(1)}</span>
-                        </div>
-                        <Slider
-                          value={[scoreCardSettings.alertThreshold]}
-                          onValueChange={([value]) => setScoreCardSettings(s => ({ ...s, alertThreshold: value }))}
-                          min={1}
-                          max={10}
-                          step={0.5}
-                          className="w-full"
-                        />
-                        <p className="text-xs text-muted-foreground">You'll be alerted when your score drops below this value</p>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                          <Label>Show Team Comparison</Label>
-                          <p className="text-xs text-muted-foreground mt-0.5">Compare your score with team average</p>
-                        </div>
-                        <Switch
-                          checked={scoreCardSettings.showComparison}
-                          onCheckedChange={(checked) => setScoreCardSettings(s => ({ ...s, showComparison: checked }))}
-                        />
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                        <Button 
-                          variant="outline" 
-                          className="flex-1 gap-2"
-                          onClick={() => setScoreCardSettings({ targetScore: 7.0, showComparison: true, alertThreshold: 5.0 })}
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                          Reset
-                        </Button>
-                        <Button 
-                          className="flex-1"
-                          onClick={() => {
-                            setScoreCardDialogOpen(false);
-                            toast.success("Score card settings saved!");
-                          }}
-                        >
-                          Save Settings
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+          <CardContent className="p-4 md:p-5">
+            <p className="text-xs md:text-sm text-muted-foreground mb-3">Overall performance</p>
+            {/* Centered Score - The main highlight */}
+            <div className="flex items-center justify-center py-2">
               <div className={cn(
-                "w-12 h-12 md:w-14 md:h-14 rounded-full border-4 flex items-center justify-center transition-colors",
+                "w-16 h-16 md:w-20 md:h-20 rounded-full border-4 flex items-center justify-center transition-colors",
                 performanceStatus === "success" && "border-success",
                 performanceStatus === "warning" && "border-warning",
                 performanceStatus === "danger" && "border-destructive"
               )}>
-                <span className="text-sm md:text-base font-bold">{currentStats.performance}</span>
+                <span className="text-2xl md:text-3xl font-bold">{currentStats.performance}</span>
               </div>
             </div>
             {scoreCardSettings.showComparison && (
-              <p className="text-[10px] md:text-xs text-muted-foreground">
+              <p className="text-[10px] md:text-xs text-muted-foreground text-center mt-2">
                 {parseFloat(currentStats.performance) < scoreCardSettings.targetScore 
                   ? `${(scoreCardSettings.targetScore - parseFloat(currentStats.performance)).toFixed(1)} points below target`
                   : `${(parseFloat(currentStats.performance) - scoreCardSettings.targetScore).toFixed(1)} points above target`}
