@@ -1,6 +1,15 @@
-import { Plus, User, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, User, CheckCircle, Clock, AlertCircle, MoreHorizontal, Edit, Trash2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Assignment {
   id: string;
@@ -47,6 +56,9 @@ const mockAssignments: Assignment[] = [
 ];
 
 const Assignments = () => {
+  const navigate = useNavigate();
+  const [assignments, setAssignments] = useState(mockAssignments);
+
   const getStatusIcon = (status: Assignment["status"]) => {
     switch (status) {
       case "completed":
@@ -69,6 +81,20 @@ const Assignments = () => {
     }
   };
 
+  const handleStartAssignment = (assignment: Assignment) => {
+    navigate("/roleplays");
+    toast.success(`Starting "${assignment.title}"`);
+  };
+
+  const handleEditAssignment = (assignment: Assignment) => {
+    toast.info(`Editing "${assignment.title}"`);
+  };
+
+  const handleDeleteAssignment = (id: string) => {
+    setAssignments(assignments.filter(a => a.id !== id));
+    toast.success("Assignment deleted");
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -79,7 +105,7 @@ const Assignments = () => {
             Manage training assignments for your team
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => toast.success("Creating new assignment...")}>
           <Plus className="w-4 h-4" />
           Create Assignment
         </Button>
@@ -87,11 +113,11 @@ const Assignments = () => {
 
       {/* Assignments List */}
       <div className="space-y-4">
-        {mockAssignments.map((assignment) => (
-          <Card key={assignment.id}>
+        {assignments.map((assignment) => (
+          <Card key={assignment.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-4 cursor-pointer" onClick={() => handleStartAssignment(assignment)}>
                   {getStatusIcon(assignment.status)}
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">
@@ -117,32 +143,52 @@ const Assignments = () => {
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <div className="flex items-center gap-2 mb-2">
-                    {assignment.assignedTo.map((person, i) => (
+                <div className="flex items-start gap-4">
+                  <div className="text-right">
+                    <div className="flex items-center gap-2 mb-2">
+                      {assignment.assignedTo.map((person) => (
+                        <div
+                          key={person}
+                          className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-medium cursor-pointer hover:ring-2 hover:ring-primary/50"
+                          title={person}
+                          onClick={() => toast.info(`Viewing ${person}'s profile`)}
+                        >
+                          {person.split(" ").map((n) => n[0]).join("")}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-medium">{assignment.completedCalls}</span>
+                      <span className="text-muted-foreground">/{assignment.requiredCalls} calls</span>
+                    </div>
+                    <div className="w-24 h-2 bg-muted rounded-full overflow-hidden mt-2">
                       <div
-                        key={person}
-                        className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-medium"
-                        title={person}
-                      >
-                        {person.split(" ").map((n) => n[0]).join("")}
-                      </div>
-                    ))}
+                        className="h-full bg-primary rounded-full"
+                        style={{ width: `${(assignment.completedCalls / assignment.requiredCalls) * 100}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="text-sm">
-                    <span className="font-medium">{assignment.completedCalls}</span>
-                    <span className="text-muted-foreground">
-                      /{assignment.requiredCalls} calls
-                    </span>
-                  </div>
-                  <div className="w-24 h-2 bg-muted rounded-full overflow-hidden mt-2">
-                    <div
-                      className="h-full bg-primary rounded-full"
-                      style={{
-                        width: `${(assignment.completedCalls / assignment.requiredCalls) * 100}%`,
-                      }}
-                    />
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleStartAssignment(assignment)}>
+                        <Play className="w-4 h-4 mr-2" />
+                        Start Assignment
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEditAssignment(assignment)}>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDeleteAssignment(assignment.id)} className="text-destructive">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </CardContent>

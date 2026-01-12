@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Trophy, Medal, Crown, Star, TrendingUp, Phone, Target } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Trophy, Medal, Crown, Star, TrendingUp, Phone, Target, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface LeaderboardEntry {
   rank: number;
@@ -27,10 +29,15 @@ const leaderboard: LeaderboardEntry[] = [
 const timeFilters = ["This Week", "This Month", "All Time"];
 
 const LeaderboardPage = () => {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState("This Week");
 
   const top3 = leaderboard.slice(0, 3);
   const rest = leaderboard.slice(3);
+
+  const handleViewProfile = (name: string) => {
+    toast.info(`Viewing ${name}'s profile`);
+  };
 
   return (
     <div className="p-6 animate-fade-in">
@@ -123,28 +130,28 @@ const LeaderboardPage = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => toast.info("Viewing your rank points breakdown")}>
           <CardContent className="p-4 text-center">
             <Trophy className="w-8 h-8 text-amber-500 mx-auto mb-2" />
             <p className="text-2xl font-bold">47</p>
             <p className="text-sm text-muted-foreground">Your Rank Points</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/calls")}>
           <CardContent className="p-4 text-center">
             <Phone className="w-8 h-8 text-primary mx-auto mb-2" />
             <p className="text-2xl font-bold">32</p>
             <p className="text-sm text-muted-foreground">Calls This Week</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/analytics")}>
           <CardContent className="p-4 text-center">
             <Target className="w-8 h-8 text-accent mx-auto mb-2" />
             <p className="text-2xl font-bold">75</p>
             <p className="text-sm text-muted-foreground">Avg Score</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => toast.success("You're ranked #7 this week!")}>
           <CardContent className="p-4 text-center">
             <TrendingUp className="w-8 h-8 text-success mx-auto mb-2" />
             <p className="text-2xl font-bold">#7</p>
@@ -163,8 +170,9 @@ const LeaderboardPage = () => {
             {rest.map((entry, index) => (
               <div
                 key={entry.rank}
+                onClick={() => handleViewProfile(entry.name)}
                 className={cn(
-                  "flex items-center gap-4 p-4 rounded-xl transition-colors",
+                  "flex items-center gap-4 p-4 rounded-xl transition-colors cursor-pointer",
                   entry.name === "Saad Khan" ? "bg-primary/5 border border-primary/20" : "hover:bg-muted"
                 )}
                 style={{ animationDelay: `${(index + 4) * 50}ms` }}
