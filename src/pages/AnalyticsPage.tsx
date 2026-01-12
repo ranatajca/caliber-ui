@@ -6,10 +6,7 @@ import {
   ChevronRight,
   Settings2,
   Download,
-  Check,
-  X,
   Info,
-  Maximize2,
   RotateCcw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,12 +29,26 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  ReferenceLine,
+  Area,
+  AreaChart,
+  Legend,
+} from "recharts";
 
 const timeFilters = ["7D", "30D", "3M", "6M"];
 
 type WeeklyData = { week: string; passed: number; failed: number; goal: number };
 
-// Data varies by time filter
 const weeklyDataByFilter: Record<string, WeeklyData[]> = {
   "7D": [
     { week: "Mon", passed: 22, failed: 8, goal: 30 },
@@ -69,7 +80,37 @@ const weeklyDataByFilter: Record<string, WeeklyData[]> = {
   ],
 };
 
-// Stats vary by team
+const scoreDataByFilter: Record<string, { name: string; score: number; goal: number }[]> = {
+  "7D": [
+    { name: "Mon", score: 45, goal: 70 },
+    { name: "Tue", score: 52, goal: 70 },
+    { name: "Wed", score: 48, goal: 70 },
+    { name: "Thu", score: 61, goal: 70 },
+    { name: "Fri", score: 58, goal: 70 },
+    { name: "Sat", score: 72, goal: 70 },
+    { name: "Sun", score: 75, goal: 70 },
+  ],
+  "30D": [
+    { name: "Week 1", score: 52, goal: 70 },
+    { name: "Week 2", score: 58, goal: 70 },
+    { name: "Week 3", score: 64, goal: 70 },
+    { name: "Week 4", score: 68, goal: 70 },
+  ],
+  "3M": [
+    { name: "Jan", score: 55, goal: 70 },
+    { name: "Feb", score: 62, goal: 70 },
+    { name: "Mar", score: 71, goal: 70 },
+  ],
+  "6M": [
+    { name: "Jul", score: 42, goal: 70 },
+    { name: "Aug", score: 48, goal: 70 },
+    { name: "Sep", score: 55, goal: 70 },
+    { name: "Oct", score: 61, goal: 70 },
+    { name: "Nov", score: 68, goal: 70 },
+    { name: "Dec", score: 74, goal: 70 },
+  ],
+};
+
 const teamStats: Record<string, { performance: string; calls: number; callsTotal: number; avgScore: number; avgScoreChange: number; conversionRate: number }> = {
   "Onboarding team": { performance: "6.5", calls: 457, callsTotal: 700, avgScore: 60, avgScoreChange: -32, conversionRate: 60 },
   "Enterprise team": { performance: "7.8", calls: 312, callsTotal: 500, avgScore: 72, avgScoreChange: 15, conversionRate: 68 },
@@ -89,24 +130,65 @@ interface ScoreCardSettings {
   alertThreshold: number;
 }
 
+const CustomBarTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-popover border border-border rounded-lg shadow-lg p-3 text-sm">
+        <p className="font-medium mb-2">{label}</p>
+        <div className="space-y-1">
+          <p className="text-success flex items-center gap-2">
+            <span className="w-2 h-2 rounded bg-accent" />
+            Passed: {payload[0]?.value}
+          </p>
+          <p className="text-destructive flex items-center gap-2">
+            <span className="w-2 h-2 rounded bg-destructive" />
+            Failed: {payload[1]?.value}
+          </p>
+          <p className="text-muted-foreground border-t border-border pt-1 mt-1">
+            Goal: {payload[0]?.payload?.goal}
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomLineTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-popover border border-border rounded-lg shadow-lg p-3 text-sm">
+        <p className="font-medium mb-2">{label}</p>
+        <div className="space-y-1">
+          <p className="text-accent flex items-center gap-2">
+            <span className="w-2 h-2 rounded bg-accent" />
+            Score: {payload[0]?.value}%
+          </p>
+          <p className="text-muted-foreground">
+            Goal: {payload[0]?.payload?.goal}%
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 const AnalyticsPage = () => {
   const navigate = useNavigate();
   const [activeTimeFilter, setActiveTimeFilter] = useState("7D");
   const [selectedTeam, setSelectedTeam] = useState("Onboarding team");
   const [expandedObjection, setExpandedObjection] = useState<number | null>(null);
-  const [hoveredBar, setHoveredBar] = useState<number | null>(null);
   const [scoreCardSettings, setScoreCardSettings] = useState<ScoreCardSettings>({
     targetScore: 7.0,
     showComparison: true,
     alertThreshold: 5.0,
   });
   const [scoreCardDialogOpen, setScoreCardDialogOpen] = useState(false);
-  const [expandedChart, setExpandedChart] = useState<string | null>(null);
 
   const weeklyData = weeklyDataByFilter[activeTimeFilter] || weeklyDataByFilter["7D"];
+  const scoreData = scoreDataByFilter[activeTimeFilter] || scoreDataByFilter["7D"];
   const currentStats = teamStats[selectedTeam] || teamStats["Onboarding team"];
-  const maxBarHeight = 120;
-  const maxValue = Math.max(...weeklyData.map(d => d.passed + d.failed));
 
   const handleExportData = () => {
     const csvContent = [
@@ -184,22 +266,30 @@ const AnalyticsPage = () => {
 
       {/* Overview Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-        {/* Customizable Score Card */}
+        {/* Customizable Score Card - Now more prominent */}
         <Card className={cn(
-          "relative overflow-hidden transition-all cursor-pointer hover:shadow-lg",
-          performanceStatus === "success" && "ring-2 ring-success/20",
-          performanceStatus === "warning" && "ring-2 ring-warning/20",
-          performanceStatus === "danger" && "ring-2 ring-destructive/20"
+          "relative overflow-hidden transition-all hover:shadow-lg",
+          performanceStatus === "success" && "ring-2 ring-success/30",
+          performanceStatus === "warning" && "ring-2 ring-warning/30",
+          performanceStatus === "danger" && "ring-2 ring-destructive/30"
         )}>
           <CardContent className="p-3 md:p-4">
             <div className="flex items-start justify-between mb-1 md:mb-2">
-              <div className="flex items-center gap-1">
-                <p className="text-xs md:text-sm text-muted-foreground">Overall performance</p>
+              <div className="flex-1">
+                <div className="flex items-center gap-1 mb-2">
+                  <p className="text-xs md:text-sm text-muted-foreground">Overall performance</p>
+                </div>
+                {/* Prominent Customize Button */}
                 <Dialog open={scoreCardDialogOpen} onOpenChange={setScoreCardDialogOpen}>
                   <DialogTrigger asChild>
-                    <button className="p-1 hover:bg-muted rounded transition-colors">
-                      <Settings2 className="w-3 h-3 text-muted-foreground" />
-                    </button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-7 text-xs gap-1 w-full mt-2"
+                    >
+                      <Settings2 className="w-3 h-3" />
+                      Customize Goals
+                    </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -212,7 +302,7 @@ const AnalyticsPage = () => {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <Label>Target Score</Label>
-                          <span className="text-sm font-medium">{scoreCardSettings.targetScore.toFixed(1)}</span>
+                          <span className="text-sm font-medium text-success">{scoreCardSettings.targetScore.toFixed(1)}</span>
                         </div>
                         <Slider
                           value={[scoreCardSettings.targetScore]}
@@ -222,6 +312,7 @@ const AnalyticsPage = () => {
                           step={0.5}
                           className="w-full"
                         />
+                        <p className="text-xs text-muted-foreground">Your performance goal to achieve</p>
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -238,7 +329,7 @@ const AnalyticsPage = () => {
                         />
                         <p className="text-xs text-muted-foreground">You'll be alerted when your score drops below this value</p>
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
                           <Label>Show Team Comparison</Label>
                           <p className="text-xs text-muted-foreground mt-0.5">Compare your score with team average</p>
@@ -272,25 +363,21 @@ const AnalyticsPage = () => {
                 </Dialog>
               </div>
               <div className={cn(
-                "w-10 h-10 md:w-12 md:h-12 rounded-full border-4 flex items-center justify-center transition-colors",
+                "w-12 h-12 md:w-14 md:h-14 rounded-full border-4 flex items-center justify-center transition-colors",
                 performanceStatus === "success" && "border-success",
                 performanceStatus === "warning" && "border-warning",
                 performanceStatus === "danger" && "border-destructive"
               )}>
-                <span className="text-xs md:text-sm font-bold">{currentStats.performance}</span>
+                <span className="text-sm md:text-base font-bold">{currentStats.performance}</span>
               </div>
             </div>
             {scoreCardSettings.showComparison && (
-              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+              <p className="text-[10px] md:text-xs text-muted-foreground">
                 {parseFloat(currentStats.performance) < scoreCardSettings.targetScore 
                   ? `${(scoreCardSettings.targetScore - parseFloat(currentStats.performance)).toFixed(1)} points below target`
                   : `${(parseFloat(currentStats.performance) - scoreCardSettings.targetScore).toFixed(1)} points above target`}
               </p>
             )}
-            <div className="mt-2 flex items-center gap-1 text-[10px]">
-              <span className="text-muted-foreground">Target:</span>
-              <span className="font-medium">{scoreCardSettings.targetScore.toFixed(1)}</span>
-            </div>
           </CardContent>
         </Card>
         
@@ -317,9 +404,10 @@ const AnalyticsPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* Main Chart */}
+        {/* Main Charts */}
         <div className="lg:col-span-2 space-y-4 md:space-y-6">
-          <Card className="relative">
+          {/* Bar Chart - Using Recharts */}
+          <Card>
             <CardHeader className="pb-2 md:pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
@@ -329,7 +417,7 @@ const AnalyticsPage = () => {
                       <Info className="w-3.5 h-3.5 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p className="max-w-xs text-xs">Shows passed vs failed calls compared to your weekly goal. Hover over bars to see details.</p>
+                      <p className="max-w-xs text-xs">Shows passed vs failed calls compared to your weekly goal</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
@@ -346,94 +434,57 @@ const AnalyticsPage = () => {
                     <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-accent" />
                     <span className="text-muted-foreground">Passed</span>
                   </div>
-                  <button 
-                    onClick={() => setExpandedChart(expandedChart === "volume" ? null : "volume")}
-                    className="p-1 hover:bg-muted rounded transition-colors"
-                  >
-                    <Maximize2 className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className={cn(
-                "flex items-end gap-2 md:gap-4 transition-all",
-                expandedChart === "volume" ? "h-80" : "h-48 md:h-64"
-              )}>
-                {weeklyData.map((data, index) => {
-                  const passedHeight = (data.passed / maxValue) * maxBarHeight;
-                  const failedHeight = (data.failed / maxValue) * maxBarHeight;
-                  const isHovered = hoveredBar === index;
-                  
-                  return (
-                    <div 
-                      key={data.week} 
-                      className="flex-1 flex flex-col items-center gap-1 md:gap-2 relative"
-                      onMouseEnter={() => setHoveredBar(index)}
-                      onMouseLeave={() => setHoveredBar(null)}
-                    >
-                      {/* Tooltip */}
-                      {isHovered && (
-                        <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-popover border border-border rounded-lg shadow-lg p-2 z-10 min-w-[120px] animate-fade-in">
-                          <p className="text-xs font-medium mb-1">{data.week}</p>
-                          <div className="flex items-center justify-between text-xs gap-3">
-                            <span className="text-success">Passed: {data.passed}</span>
-                          </div>
-                          <div className="flex items-center justify-between text-xs gap-3">
-                            <span className="text-destructive">Failed: {data.failed}</span>
-                          </div>
-                          <div className="flex items-center justify-between text-xs gap-3 mt-1 pt-1 border-t border-border">
-                            <span>Goal: {data.goal}</span>
-                          </div>
-                        </div>
-                      )}
-                      <div className="relative w-full flex flex-col items-center">
-                        {/* Goal line */}
-                        <div 
-                          className="absolute w-full border-t-2 border-dashed border-muted-foreground/50"
-                          style={{ bottom: `${(data.goal / maxValue) * maxBarHeight}%` }}
-                        />
-                        {/* Stacked bar */}
-                        <div className="w-full flex flex-col-reverse items-center gap-0.5">
-                          <div 
-                            className={cn(
-                              "w-full bg-accent rounded-t bar-animate transition-all cursor-pointer",
-                              isHovered && "opacity-80 scale-105"
-                            )}
-                            style={{ 
-                              height: `${passedHeight}px`,
-                              animationDelay: `${index * 100}ms`
-                            }}
-                            onClick={() => {
-                              navigate("/calls");
-                              toast.info(`Viewing calls from ${data.week}`);
-                            }}
-                          />
-                          <div 
-                            className={cn(
-                              "w-full bg-destructive bar-animate transition-all cursor-pointer",
-                              isHovered && "opacity-80 scale-105"
-                            )}
-                            style={{ 
-                              height: `${failedHeight}px`,
-                              animationDelay: `${index * 100 + 50}ms`
-                            }}
-                            onClick={() => {
-                              navigate("/calls");
-                              toast.info(`Viewing failed calls from ${data.week}`);
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <span className="text-[10px] md:text-xs text-muted-foreground">{data.week}</span>
-                    </div>
-                  );
-                })}
+              <div className="h-64 md:h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weeklyData} margin={{ top: 20, right: 10, left: -10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
+                    <XAxis 
+                      dataKey="week" 
+                      tick={{ fontSize: 11 }} 
+                      tickLine={false} 
+                      axisLine={false}
+                      className="text-muted-foreground"
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 11 }} 
+                      tickLine={false} 
+                      axisLine={false}
+                      className="text-muted-foreground"
+                    />
+                    <RechartsTooltip content={<CustomBarTooltip />} />
+                    <ReferenceLine 
+                      y={weeklyData[0]?.goal || 30} 
+                      stroke="hsl(var(--muted-foreground))" 
+                      strokeDasharray="5 5" 
+                      strokeWidth={2}
+                    />
+                    <Bar 
+                      dataKey="passed" 
+                      stackId="a" 
+                      fill="hsl(var(--accent))" 
+                      radius={[0, 0, 0, 0]}
+                      className="cursor-pointer"
+                      onClick={() => navigate("/calls")}
+                    />
+                    <Bar 
+                      dataKey="failed" 
+                      stackId="a" 
+                      fill="hsl(var(--destructive))" 
+                      radius={[4, 4, 0, 0]}
+                      className="cursor-pointer"
+                      onClick={() => navigate("/calls")}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
 
-          {/* Weekly Score Chart */}
+          {/* Line Chart - Using Recharts */}
           <Card>
             <CardHeader className="pb-2 md:pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -444,7 +495,7 @@ const AnalyticsPage = () => {
                       <Info className="w-3.5 h-3.5 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p className="max-w-xs text-xs">Your average call score trend over time compared to team goal of 70%</p>
+                      <p className="max-w-xs text-xs">Your average call score trend over time</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
@@ -461,51 +512,50 @@ const AnalyticsPage = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-36 md:h-48 relative">
-                {/* Y-axis labels */}
-                <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-[10px] text-muted-foreground -ml-1">
-                  <span>100%</span>
-                  <span>75%</span>
-                  <span>50%</span>
-                  <span>25%</span>
-                  <span>0%</span>
-                </div>
-                <svg className="w-full h-full ml-6" viewBox="0 0 400 150" preserveAspectRatio="none">
-                  {/* Grid lines */}
-                  <line x1="0" y1="37.5" x2="400" y2="37.5" stroke="currentColor" className="text-border" strokeWidth="0.5" />
-                  <line x1="0" y1="75" x2="400" y2="75" stroke="currentColor" className="text-border" strokeWidth="0.5" />
-                  <line x1="0" y1="112.5" x2="400" y2="112.5" stroke="currentColor" className="text-border" strokeWidth="0.5" />
-                  
-                  {/* Goal line at 70% */}
-                  <line x1="0" y1="45" x2="400" y2="45" stroke="currentColor" strokeDasharray="5,5" className="text-muted-foreground/50" strokeWidth="1" />
-                  
-                  {/* Area fill */}
-                  <path 
-                    d="M0,130 Q50,120 100,100 T200,80 T300,60 T400,40 L400,150 L0,150 Z" 
-                    fill="hsl(var(--accent) / 0.1)" 
-                  />
-                  
-                  {/* Line */}
-                  <path 
-                    d="M0,130 Q50,120 100,100 T200,80 T300,60 T400,40" 
-                    fill="none" 
-                    stroke="hsl(var(--accent))" 
-                    strokeWidth="3"
-                    className="animate-draw-line"
-                  />
-                  
-                  {/* Data points */}
-                  {[0, 100, 200, 300, 400].map((x, i) => (
-                    <circle 
-                      key={i}
-                      cx={x} 
-                      cy={130 - (i * 22.5)} 
-                      r="4" 
-                      fill="hsl(var(--accent))"
-                      className="cursor-pointer hover:r-6 transition-all"
+              <div className="h-48 md:h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={scoreData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{ fontSize: 11 }} 
+                      tickLine={false} 
+                      axisLine={false}
+                      className="text-muted-foreground"
                     />
-                  ))}
-                </svg>
+                    <YAxis 
+                      tick={{ fontSize: 11 }} 
+                      tickLine={false} 
+                      axisLine={false}
+                      domain={[0, 100]}
+                      tickFormatter={(value) => `${value}%`}
+                      className="text-muted-foreground"
+                    />
+                    <RechartsTooltip content={<CustomLineTooltip />} />
+                    <ReferenceLine 
+                      y={70} 
+                      stroke="hsl(var(--muted-foreground))" 
+                      strokeDasharray="5 5" 
+                      strokeWidth={2}
+                      label={{ value: "Goal", position: "right", fontSize: 10 }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="score" 
+                      stroke="hsl(var(--accent))" 
+                      strokeWidth={3}
+                      fill="url(#colorScore)"
+                      dot={{ fill: "hsl(var(--accent))", strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, strokeWidth: 0 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
@@ -574,7 +624,7 @@ const AnalyticsPage = () => {
                     <Info className="w-3.5 h-3.5 text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="max-w-xs text-xs">Click to expand and see detailed handling stats. Practice weak areas with AI roleplay.</p>
+                    <p className="max-w-xs text-xs">Click to expand and see detailed handling stats</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
