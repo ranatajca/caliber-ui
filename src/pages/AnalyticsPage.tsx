@@ -45,20 +45,20 @@ const AnalyticsPage = () => {
   const maxValue = Math.max(...weeklyData.map(d => d.passed + d.failed));
 
   return (
-    <div className="p-6 animate-fade-in">
+    <div className="p-4 md:p-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-display font-bold">Analytics</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl md:text-2xl font-display font-bold">Analytics</h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-1">
             Track team performance and identify areas for improvement
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
           <select 
             value={selectedTeam}
             onChange={(e) => setSelectedTeam(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-border bg-card text-sm"
+            className="px-3 md:px-4 py-2 rounded-lg border border-border bg-card text-sm"
           >
             <option>Onboarding team</option>
             <option>Enterprise team</option>
@@ -70,7 +70,7 @@ const AnalyticsPage = () => {
                 key={filter}
                 onClick={() => setActiveTimeFilter(filter)}
                 className={cn(
-                  "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                  "px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors flex-1 sm:flex-none",
                   activeTimeFilter === filter
                     ? "bg-card shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -84,7 +84,7 @@ const AnalyticsPage = () => {
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
         <OverviewCard
           title="Overall performance"
           value="6.5"
@@ -110,38 +110,38 @@ const AnalyticsPage = () => {
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Main Chart */}
-        <div className="col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 md:space-y-6">
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Weekly Call volume vs. Goal</CardTitle>
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-2">
+            <CardHeader className="pb-2 md:pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <CardTitle className="text-sm md:text-base">Weekly Call volume vs. Goal</CardTitle>
+                <div className="flex items-center gap-3 md:gap-4 text-xs">
+                  <div className="flex items-center gap-1.5 md:gap-2">
                     <div className="w-3 h-0.5 border-t-2 border-dashed border-muted-foreground" />
                     <span className="text-muted-foreground">Goal</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded bg-destructive" />
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-destructive" />
                     <span className="text-muted-foreground">Failed</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded bg-accent" />
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-accent" />
                     <span className="text-muted-foreground">Passed</span>
                   </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-64 flex items-end gap-4">
+              <div className="h-48 md:h-64 flex items-end gap-2 md:gap-4">
                 {weeklyData.map((data, index) => {
                   const total = data.passed + data.failed;
                   const passedHeight = (data.passed / maxValue) * maxBarHeight;
                   const failedHeight = (data.failed / maxValue) * maxBarHeight;
                   
                   return (
-                    <div key={data.week} className="flex-1 flex flex-col items-center gap-2">
+                    <div key={data.week} className="flex-1 flex flex-col items-center gap-1 md:gap-2">
                       <div className="relative w-full flex flex-col items-center">
                         {/* Goal line */}
                         <div 
@@ -166,7 +166,7 @@ const AnalyticsPage = () => {
                           />
                         </div>
                       </div>
-                      <span className="text-xs text-muted-foreground">{data.week}</span>
+                      <span className="text-[10px] md:text-xs text-muted-foreground">{data.week}</span>
                     </div>
                   );
                 })}
@@ -176,23 +176,23 @@ const AnalyticsPage = () => {
 
           {/* Weekly Score Chart */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Weekly Call score vs. Goal</CardTitle>
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-2">
+            <CardHeader className="pb-2 md:pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <CardTitle className="text-sm md:text-base">Weekly Call score vs. Goal</CardTitle>
+                <div className="flex items-center gap-3 md:gap-4 text-xs">
+                  <div className="flex items-center gap-1.5 md:gap-2">
                     <div className="w-3 h-0.5 border-t-2 border-dashed border-muted-foreground" />
                     <span className="text-muted-foreground">Goal</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded bg-accent" />
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-accent" />
                     <span className="text-muted-foreground">Calls</span>
                   </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-48 relative">
+              <div className="h-36 md:h-48 relative">
                 {/* Simplified line chart representation */}
                 <svg className="w-full h-full" viewBox="0 0 400 150" preserveAspectRatio="none">
                   <line x1="0" y1="75" x2="400" y2="75" stroke="currentColor" strokeDasharray="5,5" className="text-muted-foreground/50" strokeWidth="1" />
@@ -209,55 +209,55 @@ const AnalyticsPage = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {/* Learning Modules */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Learning modules</CardTitle>
+            <CardHeader className="pb-2 md:pb-4">
+              <CardTitle className="text-sm md:text-base">Learning modules</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 md:space-y-4">
               <div className="flex items-center justify-between cursor-pointer hover:bg-muted p-2 -m-2 rounded-lg transition-colors" onClick={() => navigate("/training")}>
                 <div>
-                  <p className="text-3xl font-bold">3</p>
-                  <p className="text-sm text-muted-foreground">Learning modules assigned</p>
+                  <p className="text-2xl md:text-3xl font-bold">3</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">Learning modules assigned</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
               </div>
               <div className="flex items-center justify-between cursor-pointer hover:bg-muted p-2 -m-2 rounded-lg transition-colors" onClick={() => navigate("/training")}>
                 <div>
-                  <p className="text-3xl font-bold">3</p>
-                  <p className="text-sm text-muted-foreground">Certificate trainings assigned</p>
+                  <p className="text-2xl md:text-3xl font-bold">3</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">Certificate trainings assigned</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
               </div>
               <div className="flex items-center justify-between cursor-pointer hover:bg-muted p-2 -m-2 rounded-lg transition-colors" onClick={() => toast.warning("2 trainings are due this week!")}>
                 <div>
-                  <p className="text-3xl font-bold text-warning">2</p>
-                  <p className="text-sm text-muted-foreground">are due soon</p>
+                  <p className="text-2xl md:text-3xl font-bold text-warning">2</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">are due soon</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
 
           {/* Objection Handling */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Objection Frequency & Handling</CardTitle>
+            <CardHeader className="pb-2 md:pb-4">
+              <CardTitle className="text-sm md:text-base">Objection Frequency & Handling</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 md:space-y-4">
               {objectionHandling.map((item, index) => (
-                <div key={index} className="flex items-start gap-3 cursor-pointer hover:bg-muted p-2 -m-2 rounded-lg transition-colors" onClick={() => toast.info(`Viewing details for: "${item.objection.substring(0, 30)}..."`)}>
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-xs font-medium flex-shrink-0">
+                <div key={index} className="flex items-start gap-2 md:gap-3 cursor-pointer hover:bg-muted p-2 -m-2 rounded-lg transition-colors" onClick={() => toast.info(`Viewing details for: "${item.objection.substring(0, 30)}..."`)}>
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-muted flex items-center justify-center text-[10px] md:text-xs font-medium flex-shrink-0">
                     {item.percentage}%
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm truncate">{item.objection}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.success} successful attempts out of {item.total}
+                    <p className="text-xs md:text-sm truncate">{item.objection}</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground">
+                      {item.success} of {item.total}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <ChevronRight className="w-3 h-3 md:w-4 md:h-4 text-muted-foreground flex-shrink-0" />
                 </div>
               ))}
             </CardContent>
@@ -284,21 +284,21 @@ const OverviewCard = ({
   type?: "score";
 }) => (
   <Card>
-    <CardContent className="p-4">
-      <div className="flex items-start justify-between mb-2">
-        <p className="text-sm text-muted-foreground">{title}</p>
+    <CardContent className="p-3 md:p-4">
+      <div className="flex items-start justify-between mb-1 md:mb-2">
+        <p className="text-xs md:text-sm text-muted-foreground">{title}</p>
         {type === "score" && (
-          <div className="w-12 h-12 rounded-full border-4 border-accent flex items-center justify-center">
-            <span className="text-sm font-bold">{value}</span>
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-4 border-accent flex items-center justify-center">
+            <span className="text-xs md:text-sm font-bold">{value}</span>
           </div>
         )}
       </div>
       {type !== "score" && (
         <div className="flex items-end gap-2">
-          <p className="text-3xl font-bold">{value}</p>
+          <p className="text-2xl md:text-3xl font-bold">{value}</p>
           {change !== undefined && (
             <span className={cn(
-              "text-sm font-medium flex items-center gap-0.5 mb-1",
+              "text-xs md:text-sm font-medium flex items-center gap-0.5 mb-1",
               positive ? "text-success" : "text-destructive"
             )}>
               {positive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -308,7 +308,7 @@ const OverviewCard = ({
         </div>
       )}
       {subtitle && (
-        <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+        <p className="text-[10px] md:text-xs text-muted-foreground mt-1">{subtitle}</p>
       )}
     </CardContent>
   </Card>

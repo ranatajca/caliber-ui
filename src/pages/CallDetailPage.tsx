@@ -59,48 +59,46 @@ const CallDetailPage = () => {
   ];
 
   return (
-    <div className="p-6 animate-fade-in">
+    <div className="p-4 md:p-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3 md:gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/calls")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-display font-bold">Cold Call with Jane Bowen</h1>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+            <h1 className="text-base md:text-xl font-display font-bold">Cold Call with Jane Bowen</h1>
+            <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground mt-1">
               <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
+                <Clock className="w-3 h-3 md:w-4 md:h-4" />
                 Jan 10, 2:30 PM
               </span>
-              <span>Director of Sales @ Agile Solutions</span>
+              <span className="hidden sm:inline">Director of Sales @ Agile Solutions</span>
               <span className="flex items-center gap-1">
-                <Play className="w-4 h-4" />
+                <Play className="w-3 h-3 md:w-4 md:h-4" />
                 4:24
               </span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="gap-2" onClick={() => {
+        <div className="flex items-center gap-2 md:gap-3">
+          <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none" onClick={() => {
             navigator.clipboard.writeText(window.location.href);
             toast.success("Link copied to clipboard!");
           }}>
             <Share2 className="w-4 h-4" />
-            Share
+            <span className="hidden sm:inline">Share</span>
           </Button>
-          <Button className="gap-2" onClick={() => navigate("/roleplays")}>
+          <Button size="sm" className="gap-2 flex-1 sm:flex-none" onClick={() => navigate("/roleplays")}>
             <Phone className="w-4 h-4" />
-            Practice Again
+            <span className="hidden sm:inline">Practice Again</span>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Main Content */}
-        <div className="col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 md:space-y-6">
           {/* Audio Player */}
           <Card>
             <CardContent className="p-4">

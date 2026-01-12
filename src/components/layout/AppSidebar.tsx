@@ -6,13 +6,13 @@ import {
   BarChart3, 
   GraduationCap, 
   Settings,
-  Sparkles,
   Plus,
   Bot,
   Trophy,
   Home,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -27,19 +27,36 @@ const navigation = [
   { name: "Team", href: "/team", icon: Users },
 ];
 
-const AppSidebar = () => {
+interface AppSidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const AppSidebar = ({ isOpen, onClose }: AppSidebarProps) => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
   return (
     <aside className={cn(
       "h-screen bg-sidebar flex flex-col fixed left-0 top-0 transition-all duration-300 z-50",
-      collapsed ? "w-20" : "w-64"
+      // Desktop: always visible
+      "hidden lg:flex",
+      collapsed ? "lg:w-20" : "lg:w-64",
+      // Mobile: slide in/out
+      isOpen && "flex w-64 lg:w-64"
     )}>
+      {/* Mobile close button */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 rounded-lg hover:bg-sidebar-accent lg:hidden"
+      >
+        <X className="w-5 h-5 text-sidebar-foreground" />
+      </button>
+
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
-        <NavLink to="/home" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl overflow-hidden">
+        <NavLink to="/home" className="flex items-center gap-3" onClick={onClose}>
+          <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0">
             <img src="/favicon.png" alt="Caliber" className="w-full h-full object-cover" />
           </div>
           {!collapsed && (
@@ -48,7 +65,7 @@ const AppSidebar = () => {
         </NavLink>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 rounded-lg hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground"
+          className="p-1.5 rounded-lg hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground hidden lg:block"
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
@@ -56,10 +73,10 @@ const AppSidebar = () => {
 
       {/* Create button */}
       <div className="p-4">
-        <NavLink to="/roleplays/new">
+        <NavLink to="/roleplays/new" onClick={onClose}>
           <Button className={cn(
             "w-full gap-2 bg-sidebar-primary hover:bg-sidebar-primary/90",
-            collapsed && "px-0"
+            collapsed && "lg:px-0"
           )}>
             <Plus className="w-5 h-5" />
             {!collapsed && "New Roleplay"}
@@ -76,17 +93,18 @@ const AppSidebar = () => {
               <li key={item.name}>
                 <NavLink
                   to={item.href}
+                  onClick={onClose}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
                     isActive
                       ? "bg-sidebar-accent text-sidebar-foreground"
                       : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                    collapsed && "justify-center px-0"
+                    collapsed && "lg:justify-center lg:px-0"
                   )}
                   title={collapsed ? item.name : undefined}
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
-                  {!collapsed && item.name}
+                  <span className={cn(collapsed && "lg:hidden")}>{item.name}</span>
                 </NavLink>
               </li>
             );
@@ -117,16 +135,17 @@ const AppSidebar = () => {
       <div className="p-3 border-t border-sidebar-border">
         <NavLink
           to="/settings"
+          onClick={onClose}
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
             location.pathname === "/settings"
               ? "bg-sidebar-accent text-sidebar-foreground"
               : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-            collapsed && "justify-center px-0"
+            collapsed && "lg:justify-center lg:px-0"
           )}
         >
           <Settings className="w-5 h-5" />
-          {!collapsed && "Settings"}
+          <span className={cn(collapsed && "lg:hidden")}>Settings</span>
         </NavLink>
       </div>
     </aside>

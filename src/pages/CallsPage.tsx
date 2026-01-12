@@ -104,23 +104,23 @@ const CallsPage = () => {
   };
 
   return (
-    <div className="p-6 animate-fade-in">
+    <div className="p-4 md:p-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-display font-bold">Call History</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl md:text-2xl font-display font-bold">Call History</h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-1">
             Review and analyze your past practice sessions
           </p>
         </div>
-        <Button onClick={() => navigate("/roleplays")} className="gap-2">
+        <Button onClick={() => navigate("/roleplays")} className="gap-2 w-full sm:w-auto">
           <Phone className="w-4 h-4" />
           Start new call
         </Button>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
         <StatCard label="Total Calls" value="47" change="+12 this week" />
         <StatCard label="Avg Score" value="78" change="+5 vs last week" positive />
         <StatCard label="Total Time" value="3h 24m" change="This month" />
@@ -128,14 +128,14 @@ const CallsPage = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
           {filters.map((filter) => (
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
               className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium transition-colors",
+                "px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-medium transition-colors whitespace-nowrap",
                 activeFilter === filter
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:text-foreground"
@@ -145,8 +145,8 @@ const CallsPage = () => {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-3">
-          <div className="relative w-64">
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="relative flex-1 sm:w-48 md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search calls..."
@@ -161,9 +161,48 @@ const CallsPage = () => {
         </div>
       </div>
 
-      {/* Calls List */}
-      <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <div className="grid grid-cols-[1fr,150px,100px,100px,80px,40px] gap-4 px-4 py-3 bg-muted/50 text-sm font-medium text-muted-foreground border-b border-border">
+      {/* Calls List - Mobile Card View */}
+      <div className="block md:hidden space-y-3">
+        {mockCalls.map((call, index) => (
+          <div
+            key={call.id}
+            onClick={() => navigate(`/calls/${call.id}`)}
+            className="bg-card rounded-xl border border-border p-4 cursor-pointer hover:shadow-md transition-all animate-slide-up"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-semibold text-primary">
+                  {call.buyerName.split(" ").map(n => n[0]).join("")}
+                </div>
+                <div>
+                  <p className="font-medium">{call.buyerName}</p>
+                  <p className="text-xs text-muted-foreground">{call.buyerRole}</p>
+                </div>
+              </div>
+              <div className={cn("font-bold text-lg rounded-lg px-2 py-1", getScoreColor(call.score))}>
+                {call.score}
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span className={cn("badge-trait", getCallTypeBadge(call.callType))}>
+                {call.callType.charAt(0).toUpperCase() + call.callType.slice(1)} Call
+              </span>
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {call.duration}
+                </span>
+                <span>{call.date}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Calls List - Desktop Table View */}
+      <div className="hidden md:block bg-card rounded-xl border border-border overflow-hidden">
+        <div className="grid grid-cols-[1fr,120px,80px,100px,60px,30px] lg:grid-cols-[1fr,150px,100px,100px,80px,40px] gap-4 px-4 py-3 bg-muted/50 text-sm font-medium text-muted-foreground border-b border-border">
           <span>Buyer</span>
           <span>Type</span>
           <span>Duration</span>
@@ -176,7 +215,7 @@ const CallsPage = () => {
             key={call.id}
             onClick={() => navigate(`/calls/${call.id}`)}
             className={cn(
-              "grid grid-cols-[1fr,150px,100px,100px,80px,40px] gap-4 px-4 py-4 items-center cursor-pointer hover:bg-muted/50 transition-colors animate-slide-up",
+              "grid grid-cols-[1fr,120px,80px,100px,60px,30px] lg:grid-cols-[1fr,150px,100px,100px,80px,40px] gap-4 px-4 py-4 items-center cursor-pointer hover:bg-muted/50 transition-colors animate-slide-up",
               index !== mockCalls.length - 1 && "border-b border-border"
             )}
             style={{ animationDelay: `${index * 50}ms` }}
@@ -186,9 +225,9 @@ const CallsPage = () => {
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-semibold text-primary">
                 {call.buyerName.split(" ").map(n => n[0]).join("")}
               </div>
-              <div>
-                <p className="font-medium">{call.buyerName}</p>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0">
+                <p className="font-medium truncate">{call.buyerName}</p>
+                <p className="text-sm text-muted-foreground truncate">
                   {call.buyerRole} @ {call.buyerCompany}
                 </p>
               </div>
@@ -196,13 +235,13 @@ const CallsPage = () => {
 
             {/* Type */}
             <div>
-              <span className={cn("badge-trait", getCallTypeBadge(call.callType))}>
+              <span className={cn("badge-trait text-xs", getCallTypeBadge(call.callType))}>
                 {call.callType.charAt(0).toUpperCase() + call.callType.slice(1)} Call
               </span>
             </div>
 
             {/* Duration */}
-            <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <Clock className="w-4 h-4" />
               {call.duration}
             </div>
@@ -213,7 +252,7 @@ const CallsPage = () => {
             </div>
 
             {/* Score */}
-            <div className={cn("font-bold text-lg rounded-lg px-2 py-1 text-center", getScoreColor(call.score))}>
+            <div className={cn("font-bold text-base rounded-lg px-2 py-1 text-center", getScoreColor(call.score))}>
               {call.score}
             </div>
 
@@ -237,16 +276,16 @@ const StatCard = ({
   change: string;
   positive?: boolean;
 }) => (
-  <div className="bg-card rounded-xl border border-border p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => toast.info(`Viewing ${label} details`)}>
-    <p className="text-sm text-muted-foreground mb-1">{label}</p>
+  <div className="bg-card rounded-xl border border-border p-3 md:p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => toast.info(`Viewing ${label} details`)}>
+    <p className="text-xs md:text-sm text-muted-foreground mb-1">{label}</p>
     <div className="flex items-end justify-between">
-      <p className="text-2xl font-bold">{value}</p>
+      <p className="text-xl md:text-2xl font-bold">{value}</p>
       <span className={cn(
-        "text-xs font-medium flex items-center gap-1",
+        "text-[10px] md:text-xs font-medium flex items-center gap-1",
         positive ? "text-success" : "text-muted-foreground"
       )}>
         {positive && <TrendingUp className="w-3 h-3" />}
-        {change}
+        <span className="hidden sm:inline">{change}</span>
       </span>
     </div>
   </div>

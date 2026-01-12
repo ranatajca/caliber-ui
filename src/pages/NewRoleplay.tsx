@@ -81,21 +81,21 @@ const NewRoleplay = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto animate-fade-in">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
+        <div className="flex items-center gap-3 md:gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/roleplays")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-display font-bold">Create AI Buyer</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-xl md:text-2xl font-display font-bold">Create AI Buyer</h1>
+            <p className="text-sm md:text-base text-muted-foreground mt-1">
               Configure your custom AI buyer persona
             </p>
           </div>
         </div>
-        <Button variant="outline" onClick={generateWithAI} className="gap-2">
+        <Button variant="outline" onClick={generateWithAI} className="gap-2 w-full sm:w-auto">
           <Wand2 className="w-4 h-4" />
           Generate with AI
         </Button>
