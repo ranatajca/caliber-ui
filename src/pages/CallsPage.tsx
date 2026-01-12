@@ -4,6 +4,7 @@ import { Phone, Play, Clock, User, Search, Filter, ChevronRight, Calendar, Trend
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Call {
   id: string;
@@ -154,7 +155,7 @@ const CallsPage = () => {
               className="pl-10"
             />
           </div>
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" onClick={() => toast.info("Advanced filters coming soon!")}>
             <Filter className="w-4 h-4" />
           </Button>
         </div>
@@ -236,7 +237,7 @@ const StatCard = ({
   change: string;
   positive?: boolean;
 }) => (
-  <div className="bg-card rounded-xl border border-border p-4">
+  <div className="bg-card rounded-xl border border-border p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => toast.info(`Viewing ${label} details`)}>
     <p className="text-sm text-muted-foreground mb-1">{label}</p>
     <div className="flex items-end justify-between">
       <p className="text-2xl font-bold">{value}</p>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -13,6 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const timeFilters = ["7D", "30D", "3M", "6M"];
 
@@ -35,6 +37,7 @@ const objectionHandling = [
 ];
 
 const AnalyticsPage = () => {
+  const navigate = useNavigate();
   const [activeTimeFilter, setActiveTimeFilter] = useState("7D");
   const [selectedTeam, setSelectedTeam] = useState("Onboarding team");
 
@@ -213,21 +216,21 @@ const AnalyticsPage = () => {
               <CardTitle className="text-base">Learning modules</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between cursor-pointer hover:bg-muted p-2 -m-2 rounded-lg transition-colors" onClick={() => navigate("/training")}>
                 <div>
                   <p className="text-3xl font-bold">3</p>
                   <p className="text-sm text-muted-foreground">Learning modules assigned</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between cursor-pointer hover:bg-muted p-2 -m-2 rounded-lg transition-colors" onClick={() => navigate("/training")}>
                 <div>
                   <p className="text-3xl font-bold">3</p>
                   <p className="text-sm text-muted-foreground">Certificate trainings assigned</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between cursor-pointer hover:bg-muted p-2 -m-2 rounded-lg transition-colors" onClick={() => toast.warning("2 trainings are due this week!")}>
                 <div>
                   <p className="text-3xl font-bold text-warning">2</p>
                   <p className="text-sm text-muted-foreground">are due soon</p>
@@ -244,7 +247,7 @@ const AnalyticsPage = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {objectionHandling.map((item, index) => (
-                <div key={index} className="flex items-start gap-3">
+                <div key={index} className="flex items-start gap-3 cursor-pointer hover:bg-muted p-2 -m-2 rounded-lg transition-colors" onClick={() => toast.info(`Viewing details for: "${item.objection.substring(0, 30)}..."`)}>
                   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-xs font-medium flex-shrink-0">
                     {item.percentage}%
                   </div>

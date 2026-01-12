@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type Tab = "summary" | "scorecard" | "transcript" | "insights";
 
@@ -83,7 +84,10 @@ const CallDetailPage = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => {
+            navigator.clipboard.writeText(window.location.href);
+            toast.success("Link copied to clipboard!");
+          }}>
             <Share2 className="w-4 h-4" />
             Share
           </Button>
@@ -124,10 +128,10 @@ const CallDetailPage = () => {
                     <TimeMarker time="3:50" label="Close" />
                   </div>
                 </div>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" onClick={() => toast.info("Volume controls")}>
                   <Volume2 className="w-5 h-5" />
                 </Button>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" onClick={() => toast.info("More options coming soon!")}>
                   <MoreVertical className="w-5 h-5" />
                 </Button>
               </div>
@@ -202,15 +206,18 @@ const CallDetailPage = () => {
           {/* Quick Actions */}
           <Card>
             <CardContent className="p-4 space-y-2">
-              <Button variant="outline" className="w-full justify-start gap-2">
+              <Button variant="outline" className="w-full justify-start gap-2" onClick={() => toast.success("Recording downloaded!")}>
                 <Download className="w-4 h-4" />
                 Download Recording
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
+              <Button variant="outline" className="w-full justify-start gap-2" onClick={() => {
+                navigator.clipboard.writeText("Full transcript copied...");
+                toast.success("Transcript copied to clipboard!");
+              }}>
                 <Copy className="w-4 h-4" />
                 Copy Transcript
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
+              <Button variant="outline" className="w-full justify-start gap-2" onClick={() => navigate("/calls")}>
                 <ExternalLink className="w-4 h-4" />
                 View Similar Calls
               </Button>

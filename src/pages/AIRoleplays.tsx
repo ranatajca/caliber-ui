@@ -10,11 +10,21 @@ import {
   MoreHorizontal,
   Play,
   Snowflake,
-  Flame
+  Flame,
+  Edit,
+  Copy,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AIPersona {
   id: string;
@@ -181,7 +191,7 @@ const AIRoleplays = () => {
         ))}
         
         <div className="ml-auto">
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.info("Filter options coming soon!")}>
             <Plus className="w-4 h-4" />
             Add filter
           </Button>
@@ -212,6 +222,8 @@ const PersonaCard = ({
   index: number;
   onStart: () => void;
 }) => {
+  const navigate = useNavigate();
+  
   const getPersonalityBadge = () => {
     switch (persona.personality) {
       case "nice": return "badge-nice";
@@ -227,6 +239,19 @@ const PersonaCard = ({
       case "warm": return "badge-warm";
       default: return "bg-purple-100 text-purple-700 border border-purple-200";
     }
+  };
+
+  const handleDuplicate = () => {
+    toast.success(`Duplicated "${persona.name}" persona`);
+  };
+
+  const handleEdit = () => {
+    navigate("/roleplays/new");
+    toast.info(`Editing "${persona.name}" persona`);
+  };
+
+  const handleDelete = () => {
+    toast.success(`Deleted "${persona.name}" persona`);
   };
 
   return (
@@ -269,12 +294,12 @@ const PersonaCard = ({
         {/* Tags */}
         <div className="flex flex-wrap gap-1 justify-center mb-3">
           {persona.tags.slice(0, 2).map((tag) => (
-            <span key={tag} className="text-xs text-muted-foreground">
+            <span key={tag} className="text-xs text-muted-foreground cursor-pointer hover:text-primary" onClick={() => toast.info(`Filtering by ${tag}`)}>
               {tag}
             </span>
           ))}
           {persona.tags.length > 2 && (
-            <span className="text-xs text-muted-foreground">+{persona.tags.length - 2}</span>
+            <span className="text-xs text-muted-foreground cursor-pointer hover:text-primary" onClick={() => toast.info(`All tags: ${persona.tags.join(", ")}`)}>+{persona.tags.length - 2}</span>
           )}
         </div>
 
@@ -293,9 +318,27 @@ const PersonaCard = ({
             <Phone className="w-4 h-4" />
             Start a call
           </Button>
-          <Button variant="ghost" size="icon">
-            <MoreHorizontal className="w-4 h-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleEdit}>
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Persona
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDuplicate}>
+                <Copy className="w-4 h-4 mr-2" />
+                Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>

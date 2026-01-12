@@ -1,11 +1,42 @@
-import { User, Bell, Shield, CreditCard, Building2 } from "lucide-react";
+import { useState } from "react";
+import { User, Bell, Shield, CreditCard, Building2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 const Settings = () => {
+  const [firstName, setFirstName] = useState("Saad");
+  const [lastName, setLastName] = useState("Khan");
+  const [email, setEmail] = useState("saad@caliber.ai");
+  const [companyName, setCompanyName] = useState("Caliber AI");
+  const [industry, setIndustry] = useState("Sales Technology");
+  const [callCompleted, setCallCompleted] = useState(true);
+  const [weeklyReports, setWeeklyReports] = useState(true);
+  const [newAssignment, setNewAssignment] = useState(true);
+
+  const handleSaveProfile = () => {
+    toast.success("Profile saved successfully!");
+  };
+
+  const handleChangeAvatar = () => {
+    toast.info("Avatar upload coming soon!");
+  };
+
+  const handleEnable2FA = () => {
+    toast.success("Two-factor authentication enabled!");
+  };
+
+  const handleChangePassword = () => {
+    toast.info("Password change dialog would open here");
+  };
+
+  const handleManageSubscription = () => {
+    toast.info("Redirecting to billing portal...");
+  };
+
   return (
     <div className="p-6 max-w-4xl">
       {/* Header */}
@@ -28,28 +59,31 @@ const Settings = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center relative group cursor-pointer" onClick={handleChangeAvatar}>
                 <User className="w-8 h-8 text-muted-foreground" />
+                <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera className="w-5 h-5 text-white" />
+                </div>
               </div>
               <div>
-                <Button variant="outline" size="sm">Change Avatar</Button>
+                <Button variant="outline" size="sm" onClick={handleChangeAvatar}>Change Avatar</Button>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" defaultValue="Saad" />
+                <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" defaultValue="Khan" />
+                <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue="saad@caliber.ai" />
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
-            <Button className="mt-4">Save Changes</Button>
+            <Button className="mt-4" onClick={handleSaveProfile}>Save Changes</Button>
           </CardContent>
         </Card>
 
@@ -65,12 +99,13 @@ const Settings = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="companyName">Company Name</Label>
-              <Input id="companyName" defaultValue="Caliber AI" />
+              <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="industry">Industry</Label>
-              <Input id="industry" defaultValue="Sales Technology" />
+              <Input id="industry" value={industry} onChange={(e) => setIndustry(e.target.value)} />
             </div>
+            <Button className="mt-4" onClick={() => toast.success("Organization settings saved!")}>Save Organization</Button>
           </CardContent>
         </Card>
 
@@ -91,7 +126,7 @@ const Settings = () => {
                   Get notified when a team member completes a call
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={callCompleted} onCheckedChange={(checked) => { setCallCompleted(checked); toast.success(checked ? "Notifications enabled" : "Notifications disabled"); }} />
             </div>
             <div className="flex items-center justify-between">
               <div>
@@ -100,7 +135,7 @@ const Settings = () => {
                   Receive weekly performance summaries
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={weeklyReports} onCheckedChange={(checked) => { setWeeklyReports(checked); toast.success(checked ? "Weekly reports enabled" : "Weekly reports disabled"); }} />
             </div>
             <div className="flex items-center justify-between">
               <div>
@@ -109,7 +144,7 @@ const Settings = () => {
                   Get notified when you're assigned a new training
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={newAssignment} onCheckedChange={(checked) => { setNewAssignment(checked); toast.success(checked ? "Assignment notifications enabled" : "Assignment notifications disabled"); }} />
             </div>
           </CardContent>
         </Card>
@@ -131,10 +166,10 @@ const Settings = () => {
                   Add an extra layer of security to your account
                 </p>
               </div>
-              <Button variant="outline" size="sm">Enable</Button>
+              <Button variant="outline" size="sm" onClick={handleEnable2FA}>Enable</Button>
             </div>
             <div className="pt-4 border-t border-border">
-              <Button variant="outline">Change Password</Button>
+              <Button variant="outline" onClick={handleChangePassword}>Change Password</Button>
             </div>
           </CardContent>
         </Card>
@@ -154,7 +189,7 @@ const Settings = () => {
                 <p className="font-medium">Pro Plan</p>
                 <p className="text-sm text-muted-foreground">$49/month per seat</p>
               </div>
-              <Button variant="outline" size="sm">Manage Subscription</Button>
+              <Button variant="outline" size="sm" onClick={handleManageSubscription}>Manage Subscription</Button>
             </div>
           </CardContent>
         </Card>

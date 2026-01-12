@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const personalityTraits = [
   { id: "busy", label: "Busy", color: "bg-orange-100 text-orange-700 border-orange-200" },
@@ -66,12 +67,17 @@ const NewRoleplay = () => {
   };
 
   const generateWithAI = () => {
+    toast.success("Generating AI buyer persona...");
     // Simulate AI generation
     setBuyerName("Sarah Chen");
     setBuyerRole("VP of Engineering");
     setBuyerCompany("TechCorp");
     setSelectedTraits(["skeptical", "technical", "data-driven"]);
     setInstructions("You are a skeptical VP who has seen many sales pitches. You care about technical details and ROI. Be dismissive initially but open up if the caller demonstrates deep product knowledge.");
+  };
+
+  const handleSaveDraft = () => {
+    toast.success("Buyer persona saved as draft!");
   };
 
   return (
@@ -266,7 +272,7 @@ const NewRoleplay = () => {
             Cancel
           </Button>
           <div className="flex gap-3">
-            <Button variant="secondary" className="gap-2">
+            <Button variant="secondary" className="gap-2" onClick={handleSaveDraft}>
               <Save className="w-4 h-4" />
               Save as Draft
             </Button>

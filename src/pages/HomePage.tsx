@@ -11,6 +11,7 @@ import {
   Zap,
   BookOpen
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -86,7 +87,7 @@ const HomePage = () => {
       {/* Today's Stats */}
       <div className="grid grid-cols-4 gap-4">
         {todayStats.map((stat) => (
-          <Card key={stat.label} className="hover:shadow-md transition-shadow cursor-pointer">
+          <Card key={stat.label} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => toast.info(`Viewing ${stat.label} details`)}>
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-10 h-10 rounded-xl bg-muted flex items-center justify-center ${stat.color}`}>
