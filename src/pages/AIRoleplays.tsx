@@ -13,7 +13,9 @@ import {
   Flame,
   Edit,
   Copy,
-  Trash2
+  Trash2,
+  Sparkles,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import ChatProspectCreator from "@/components/ChatProspectCreator";
 
 interface AIPersona {
   id: string;
@@ -119,12 +122,20 @@ const AIRoleplays = () => {
   const [activeFilter, setActiveFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"quick" | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showChatCreator, setShowChatCreator] = useState(false);
 
   const filteredPersonas = personas.filter((persona) => {
     if (activeFilter !== "all" && persona.callType !== activeFilter) return false;
     if (searchQuery && !persona.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
+
+  const handleProspectCreated = (prospect: any) => {
+    toast.success(`Created prospect: ${prospect.name}`);
+    setShowChatCreator(false);
+    // In a real app, this would add to the personas list
+    navigate(`/roleplays/1/start`);
+  };
 
   return (
     <div className="p-4 md:p-6 animate-fade-in">
@@ -136,11 +147,33 @@ const AIRoleplays = () => {
             Practice with AI-powered buyer personas
           </p>
         </div>
-        <Button onClick={() => navigate("/roleplays/new")} className="gap-2 w-full sm:w-auto">
-          <Plus className="w-4 h-4" />
-          Create Custom Bot
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowChatCreator(!showChatCreator)} 
+            className="gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span className="hidden sm:inline">Create with AI</span>
+            <span className="sm:hidden">AI</span>
+          </Button>
+          <Button onClick={() => navigate("/roleplays/new")} className="gap-2 w-full sm:w-auto">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Custom Bot</span>
+            <span className="sm:hidden">New</span>
+          </Button>
+        </div>
       </div>
+
+      {/* Chat Prospect Creator */}
+      {showChatCreator && (
+        <div className="mb-6 animate-fade-in">
+          <ChatProspectCreator 
+            onProspectCreated={handleProspectCreated}
+            onClose={() => setShowChatCreator(false)}
+          />
+        </div>
+      )}
 
       {/* View Toggle & Search */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
