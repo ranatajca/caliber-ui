@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { RoleProvider } from "@/contexts/RoleContext";
 import AppLayout from "./components/layout/AppLayout";
 import LandingPage from "./pages/LandingPage";
 import HomePage from "./pages/HomePage";
@@ -25,31 +26,33 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/talent" element={<PublicTalentPage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          {/* App Routes */}
-          <Route element={<AppLayout />}>
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/roleplays" element={<AIRoleplays />} />
-            <Route path="/roleplays/new" element={<NewRoleplay />} />
-            <Route path="/roleplays/:id/start" element={<StartRoleplay />} />
-            <Route path="/calls" element={<CallsPage />} />
-            <Route path="/calls/:id" element={<CallDetailPage />} />
-            <Route path="/leaderboard" element={<LeaderboardPage />} />
-            <Route path="/metrics" element={<MetricsPage />} />
-            <Route path="/ask-ai" element={<AskAIPage />} />
-            <Route path="/team" element={<Members />} />
-            <Route path="/settings" element={<Settings />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <RoleProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/talent" element={<PublicTalentPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            {/* App Routes */}
+            <Route element={<AppLayout />}>
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/roleplays" element={<AIRoleplays />} />
+              <Route path="/roleplays/new" element={<NewRoleplay />} />
+              <Route path="/roleplays/:id/start" element={<StartRoleplay />} />
+              <Route path="/calls" element={<CallsPage />} />
+              <Route path="/calls/:id" element={<CallDetailPage />} />
+              <Route path="/leaderboard" element={<LeaderboardPage />} />
+              <Route path="/metrics" element={<MetricsPage />} />
+              <Route path="/ask-ai" element={<AskAIPage />} />
+              <Route path="/team" element={<Members />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </RoleProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

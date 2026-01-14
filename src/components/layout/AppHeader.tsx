@@ -1,7 +1,16 @@
 import { useState } from "react";
-import { Bell, Search, ChevronDown, Menu } from "lucide-react";
+import { Bell, Search, ChevronDown, Menu, Users, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useRole } from "@/contexts/RoleContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AppHeaderProps {
   userName?: string;
@@ -10,6 +19,7 @@ interface AppHeaderProps {
 
 const AppHeader = ({ userName = "Saad", onMenuClick }: AppHeaderProps) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const { role, setRole, isManager } = useRole();
 
   return (
     <header className="h-16 bg-card/80 backdrop-blur-md border-b border-border flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
@@ -37,6 +47,28 @@ const AppHeader = ({ userName = "Saad", onMenuClick }: AppHeaderProps) => {
 
       {/* Right section */}
       <div className="flex items-center gap-2 md:gap-4">
+        {/* Role Switcher */}
+        <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+          <Button
+            variant={role === "rep" ? "default" : "ghost"}
+            size="sm"
+            className="gap-1.5 h-7 text-xs"
+            onClick={() => setRole("rep")}
+          >
+            <User className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Rep</span>
+          </Button>
+          <Button
+            variant={role === "manager" ? "default" : "ghost"}
+            size="sm"
+            className="gap-1.5 h-7 text-xs"
+            onClick={() => setRole("manager")}
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Manager</span>
+          </Button>
+        </div>
+
         {/* AI Status - hidden on mobile */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-accent/10 rounded-full">
           <div className="w-2 h-2 rounded-full bg-accent pulse-dot" />
@@ -89,16 +121,34 @@ const AppHeader = ({ userName = "Saad", onMenuClick }: AppHeaderProps) => {
         </div>
 
         {/* Profile */}
-        <button className="flex items-center gap-2 md:gap-3 hover:bg-muted rounded-xl px-2 md:px-3 py-2 transition-colors">
-          <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold text-sm">
-            {userName.charAt(0)}
-          </div>
-          <div className="text-left hidden md:block">
-            <p className="text-sm font-medium">{userName}</p>
-            <p className="text-xs text-muted-foreground">Pro Plan</p>
-          </div>
-          <ChevronDown className="w-4 h-4 text-muted-foreground hidden md:block" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 md:gap-3 hover:bg-muted rounded-xl px-2 md:px-3 py-2 transition-colors">
+              <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold text-sm">
+                {userName.charAt(0)}
+              </div>
+              <div className="text-left hidden md:block">
+                <p className="text-sm font-medium">{userName}</p>
+                <p className="text-xs text-muted-foreground capitalize">{role} View</p>
+              </div>
+              <ChevronDown className="w-4 h-4 text-muted-foreground hidden md:block" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Switch View</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setRole("rep")} className="gap-2">
+              <User className="w-4 h-4" />
+              Sales Rep View
+              {role === "rep" && <span className="ml-auto text-primary">✓</span>}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setRole("manager")} className="gap-2">
+              <Users className="w-4 h-4" />
+              Manager View
+              {role === "manager" && <span className="ml-auto text-primary">✓</span>}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
