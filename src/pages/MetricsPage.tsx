@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Phone, 
@@ -23,7 +23,8 @@ import {
   ArrowDownRight,
   Zap,
   Trophy,
-  Calendar
+  Calendar,
+  Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +50,7 @@ import {
   Legend
 } from "recharts";
 import { toast } from "sonner";
+import { useRole } from "@/contexts/RoleContext";
 
 interface Rep {
   id: string;
@@ -93,10 +95,36 @@ const sourceFilters = ["All Sources", "Live Calls Only", "AI Roleplays Only"];
 
 const MetricsPage = () => {
   const navigate = useNavigate();
+  const { isManager } = useRole();
   const [timeFilter, setTimeFilter] = useState("This Week");
   const [sourceFilter, setSourceFilter] = useState("All Sources");
   const [selectedRep, setSelectedRep] = useState<Rep | null>(null);
   const [showDrillDown, setShowDrillDown] = useState(false);
+
+  // Redirect reps to leaderboard
+  useEffect(() => {
+    if (!isManager) {
+      navigate("/leaderboard", { replace: true });
+    }
+  }, [isManager, navigate]);
+
+  // If not manager, show nothing while redirecting
+  if (!isManager) {
+    return (
+      <div className="p-6 flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+          <Lock className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h2 className="text-xl font-semibold mb-2">Manager Access Only</h2>
+        <p className="text-muted-foreground text-center mb-4">
+          The Metrics dashboard is only available for managers.
+        </p>
+        <Button onClick={() => navigate("/leaderboard")}>
+          Go to Leaderboard
+        </Button>
+      </div>
+    );
+  }
 
   const teamKPIs = [
     { label: "Avg Team Score", value: "85.2", change: "+3.2", trend: "up", icon: Target },
