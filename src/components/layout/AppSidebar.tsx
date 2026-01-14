@@ -19,11 +19,11 @@ import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "Home", href: "/home", icon: Home },
+  { name: "Metrics", href: "/metrics", icon: BarChart3 },
+  { name: "Ask AI", href: "/ask-ai", icon: Bot },
   { name: "AI Roleplays", href: "/roleplays", icon: Bot },
   { name: "Calls", href: "/calls", icon: Phone },
   { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "Talent Pool", href: "/talent", icon: Briefcase },
   { name: "Team", href: "/team", icon: Users },
 ];
 
