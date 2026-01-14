@@ -5,7 +5,6 @@ import {
   TrendingUp, 
   Target, 
   ChevronRight, 
-  Users,
   Bot,
   RefreshCw,
   Calendar,
@@ -13,12 +12,9 @@ import {
   Info,
   Headphones,
   MessageSquare,
-  Award,
-  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { 
   Select, 
   SelectContent, 
@@ -53,34 +49,24 @@ interface Rep {
 }
 
 const mockReps: Rep[] = [
-  { id: "1", name: "Daisy Nicolle", avatar: "DN", email: "daisy.nicolle@company.com", callScore: 78, calls: 16, roleplayScore: 82, talkRatio: 42, discoveryRate: 85, objectionHandling: 76, color: "#3B82F6" },
-  { id: "2", name: "Luke Ward", avatar: "LW", email: "luke.ward@company.com", callScore: 72, calls: 12, roleplayScore: 68, talkRatio: 55, discoveryRate: 70, objectionHandling: 65, color: "#EF4444" },
-  { id: "3", name: "Mostafa", avatar: "M", email: "mostafa@company.com", callScore: 65, calls: 8, roleplayScore: 71, talkRatio: 48, discoveryRate: 62, objectionHandling: 58, color: "#22C55E" },
-  { id: "4", name: "Phil", avatar: "P", email: "phil@company.com", callScore: 58, calls: 6, roleplayScore: 55, talkRatio: 60, discoveryRate: 52, objectionHandling: 48, color: "#A855F7" },
-  { id: "5", name: "Lucas", avatar: "L", email: "lucas@company.com", callScore: 45, calls: 4, roleplayScore: 42, talkRatio: 65, discoveryRate: 40, objectionHandling: 35, color: "#F97316" },
-  { id: "6", name: "Joel", avatar: "J", email: "joel@company.com", callScore: 38, calls: 3, roleplayScore: 35, talkRatio: 70, discoveryRate: 32, objectionHandling: 28, color: "#06B6D4" },
-  { id: "7", name: "Mostafa Akkila", avatar: "MA", email: "mostafa.akkila@company.com", callScore: 32, calls: 2, roleplayScore: 28, talkRatio: 72, discoveryRate: 25, objectionHandling: 22, color: "#EC4899" },
-  { id: "8", name: "Savannah", avatar: "S", email: "savannah@company.com", callScore: 25, calls: 1, roleplayScore: 20, talkRatio: 75, discoveryRate: 18, objectionHandling: 15, color: "#EAB308" },
-  { id: "9", name: "Steven", avatar: "S", email: "steven@company.com", callScore: 20, calls: 0, roleplayScore: 15, talkRatio: 0, discoveryRate: 0, objectionHandling: 0, color: "#6366F1" },
-  { id: "10", name: "Lukealexxander12", avatar: "L", email: "luke.alex@company.com", callScore: 15, calls: 0, roleplayScore: 12, talkRatio: 0, discoveryRate: 0, objectionHandling: 0, color: "#14B8A6" },
-  { id: "11", name: "Aamir Khan", avatar: "AK", email: "aamir.khan@company.com", callScore: 10, calls: 0, roleplayScore: 8, talkRatio: 0, discoveryRate: 0, objectionHandling: 0, color: "#F43F5E" },
-  { id: "12", name: "Steven Brooks", avatar: "SB", email: "steven.brooks@company.com", callScore: 8, calls: 0, roleplayScore: 5, talkRatio: 0, discoveryRate: 0, objectionHandling: 0, color: "#8B5CF6" },
+  { id: "1", name: "Sarah Chen", avatar: "SC", email: "sarah.chen@company.com", callScore: 84, calls: 23, roleplayScore: 88, talkRatio: 38, discoveryRate: 91, objectionHandling: 82, color: "#6366F1" },
+  { id: "2", name: "Marcus Johnson", avatar: "MJ", email: "marcus.j@company.com", callScore: 76, calls: 18, roleplayScore: 72, talkRatio: 52, discoveryRate: 74, objectionHandling: 69, color: "#EC4899" },
+  { id: "3", name: "Elena Rodriguez", avatar: "ER", email: "elena.r@company.com", callScore: 71, calls: 14, roleplayScore: 78, talkRatio: 45, discoveryRate: 68, objectionHandling: 72, color: "#14B8A6" },
+  { id: "4", name: "James Mitchell", avatar: "JM", email: "james.m@company.com", callScore: 62, calls: 11, roleplayScore: 58, talkRatio: 58, discoveryRate: 55, objectionHandling: 51, color: "#F59E0B" },
+  { id: "5", name: "Aisha Patel", avatar: "AP", email: "aisha.p@company.com", callScore: 54, calls: 7, roleplayScore: 48, talkRatio: 62, discoveryRate: 46, objectionHandling: 42, color: "#8B5CF6" },
+  { id: "6", name: "Ryan O'Connor", avatar: "RO", email: "ryan.o@company.com", callScore: 45, calls: 5, roleplayScore: 41, talkRatio: 67, discoveryRate: 38, objectionHandling: 35, color: "#06B6D4" },
+  { id: "7", name: "Nina Kowalski", avatar: "NK", email: "nina.k@company.com", callScore: 38, calls: 3, roleplayScore: 32, talkRatio: 71, discoveryRate: 28, objectionHandling: 25, color: "#EF4444" },
+  { id: "8", name: "Derek Thompson", avatar: "DT", email: "derek.t@company.com", callScore: 28, calls: 2, roleplayScore: 24, talkRatio: 74, discoveryRate: 20, objectionHandling: 18, color: "#22C55E" },
 ];
 
-// Performance trend data - shows each rep's score over months
+// Performance trend data
 const performanceTrendData = [
-  { month: "Jan", "Daisy Nicolle": 0, "Luke Ward": 0, "Mostafa": 0, "Phil": 0, "Lucas": 0 },
-  { month: "Feb", "Daisy Nicolle": 0, "Luke Ward": 0, "Mostafa": 0, "Phil": 0, "Lucas": 0 },
-  { month: "Mar", "Daisy Nicolle": 0, "Luke Ward": 0, "Mostafa": 0, "Phil": 0, "Lucas": 0 },
-  { month: "Apr", "Daisy Nicolle": 0, "Luke Ward": 0, "Mostafa": 0, "Phil": 0, "Lucas": 0 },
-  { month: "May", "Daisy Nicolle": 0, "Luke Ward": 0, "Mostafa": 0, "Phil": 0, "Lucas": 0 },
-  { month: "Jun", "Daisy Nicolle": 0, "Luke Ward": 0, "Mostafa": 0, "Phil": 0, "Lucas": 0 },
-  { month: "Jul", "Daisy Nicolle": 0, "Luke Ward": 0, "Mostafa": 0, "Phil": 0, "Lucas": 0 },
-  { month: "Aug", "Daisy Nicolle": 0, "Luke Ward": 0, "Mostafa": 0, "Phil": 0, "Lucas": 0 },
-  { month: "Sep", "Daisy Nicolle": 10, "Luke Ward": 5, "Mostafa": 0, "Phil": 0, "Lucas": 0 },
-  { month: "Oct", "Daisy Nicolle": 45, "Luke Ward": 25, "Mostafa": 18, "Phil": 12, "Lucas": 8 },
-  { month: "Nov", "Daisy Nicolle": 68, "Luke Ward": 52, "Mostafa": 45, "Phil": 35, "Lucas": 28 },
-  { month: "Dec", "Daisy Nicolle": 78, "Luke Ward": 72, "Mostafa": 65, "Phil": 58, "Lucas": 45 },
+  { month: "Aug", "Sarah Chen": 52, "Marcus Johnson": 45, "Elena Rodriguez": 38, "James Mitchell": 28, "Aisha Patel": 22 },
+  { month: "Sep", "Sarah Chen": 58, "Marcus Johnson": 52, "Elena Rodriguez": 45, "James Mitchell": 35, "Aisha Patel": 28 },
+  { month: "Oct", "Sarah Chen": 65, "Marcus Johnson": 58, "Elena Rodriguez": 52, "James Mitchell": 42, "Aisha Patel": 35 },
+  { month: "Nov", "Sarah Chen": 74, "Marcus Johnson": 65, "Elena Rodriguez": 61, "James Mitchell": 52, "Aisha Patel": 42 },
+  { month: "Dec", "Sarah Chen": 80, "Marcus Johnson": 72, "Elena Rodriguez": 68, "James Mitchell": 58, "Aisha Patel": 48 },
+  { month: "Jan", "Sarah Chen": 84, "Marcus Johnson": 76, "Elena Rodriguez": 71, "James Mitchell": 62, "Aisha Patel": 54 },
 ];
 
 const sourceFilters = ["Live Calls", "AI Roleplay"];
@@ -92,14 +78,12 @@ const MetricsPage = () => {
   const [selectedRep, setSelectedRep] = useState<Rep | null>(null);
   const [metricFilter, setMetricFilter] = useState("Call Score");
 
-  // Redirect reps to leaderboard
   useEffect(() => {
     if (!isManager) {
       navigate("/leaderboard", { replace: true });
     }
   }, [isManager, navigate]);
 
-  // If not manager, show nothing while redirecting
   if (!isManager) {
     return (
       <div className="p-6 flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
@@ -117,7 +101,6 @@ const MetricsPage = () => {
     );
   }
 
-  // Show rep detail page if a rep is selected
   if (selectedRep) {
     return (
       <RepDetailPage 
@@ -127,13 +110,11 @@ const MetricsPage = () => {
     );
   }
 
-  // Calculate team KPIs
   const totalCalls = mockReps.reduce((sum, rep) => sum + rep.calls, 0);
-  const avgCallScore = Math.round(mockReps.filter(r => r.calls > 0).reduce((sum, rep) => sum + rep.callScore, 0) / mockReps.filter(r => r.calls > 0).length);
-  const avgRoleplayScore = Math.round(mockReps.reduce((sum, rep) => sum + rep.roleplayScore, 0) / mockReps.length);
-  const activeRepsWithCalls = mockReps.filter(r => r.calls > 0);
-  const avgTalkRatio = Math.round(activeRepsWithCalls.reduce((sum, rep) => sum + rep.talkRatio, 0) / activeRepsWithCalls.length);
-  const avgDiscoveryRate = Math.round(activeRepsWithCalls.reduce((sum, rep) => sum + rep.discoveryRate, 0) / activeRepsWithCalls.length);
+  const activeReps = mockReps.filter(r => r.calls > 0);
+  const avgCallScore = Math.round(activeReps.reduce((sum, rep) => sum + rep.callScore, 0) / activeReps.length);
+  const avgTalkRatio = Math.round(activeReps.reduce((sum, rep) => sum + rep.talkRatio, 0) / activeReps.length);
+  const avgDiscoveryRate = Math.round(activeReps.reduce((sum, rep) => sum + rep.discoveryRate, 0) / activeReps.length);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -152,7 +133,6 @@ const MetricsPage = () => {
     return null;
   };
 
-  // Get top 5 reps for the chart legend
   const topReps = mockReps.slice(0, 5);
 
   return (
@@ -185,13 +165,13 @@ const MetricsPage = () => {
                     : "bg-background hover:bg-muted"
                 }`}
               >
-                {filter} {filter === "Live Calls" ? `(${totalCalls})` : "(129)"}
+                {filter} {filter === "Live Calls" ? `(${totalCalls})` : "(86)"}
               </button>
             ))}
           </div>
           <Button variant="outline" className="gap-2">
             <Calendar className="w-4 h-4" />
-            Sep 01, 2025 - Jan 06, 2026
+            Last 6 months
           </Button>
           <Button variant="ghost" size="icon" onClick={() => toast.info("Refreshing data...")}>
             <RefreshCw className="w-4 h-4" />
@@ -199,12 +179,12 @@ const MetricsPage = () => {
         </div>
       </div>
 
-      {/* Team KPIs - Coaching focused */}
+      {/* Team KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="group hover:shadow-md transition-shadow">
           <CardContent className="p-5">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-primary/10">
+              <div className="p-2 rounded-lg bg-primary/10 group-hover:scale-110 transition-transform">
                 <Phone className="w-4 h-4 text-primary" />
               </div>
               <p className="text-sm text-muted-foreground">Total Calls</p>
@@ -213,10 +193,10 @@ const MetricsPage = () => {
             <p className="text-xs text-muted-foreground mt-1">Reviewed this period</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="group hover:shadow-md transition-shadow">
           <CardContent className="p-5">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-accent/10">
+              <div className="p-2 rounded-lg bg-accent/10 group-hover:scale-110 transition-transform">
                 <Target className="w-4 h-4 text-accent" />
               </div>
               <p className="text-sm text-muted-foreground">Avg Call Score</p>
@@ -225,10 +205,10 @@ const MetricsPage = () => {
             <p className="text-xs text-muted-foreground mt-1">Team average</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="group hover:shadow-md transition-shadow">
           <CardContent className="p-5">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-success/10">
+              <div className="p-2 rounded-lg bg-success/10 group-hover:scale-110 transition-transform">
                 <MessageSquare className="w-4 h-4 text-success" />
               </div>
               <p className="text-sm text-muted-foreground">Discovery Rate</p>
@@ -237,10 +217,10 @@ const MetricsPage = () => {
             <p className="text-xs text-muted-foreground mt-1">Questions asked</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="group hover:shadow-md transition-shadow">
           <CardContent className="p-5">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-warning/10">
+              <div className="p-2 rounded-lg bg-warning/10 group-hover:scale-110 transition-transform">
                 <Headphones className="w-4 h-4 text-warning" />
               </div>
               <p className="text-sm text-muted-foreground">Talk Ratio</p>
@@ -251,7 +231,7 @@ const MetricsPage = () => {
         </Card>
       </div>
 
-      {/* Performance per Rep Chart */}
+      {/* Performance Chart */}
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
@@ -273,7 +253,7 @@ const MetricsPage = () => {
           <p className="text-sm text-muted-foreground">Track improvement over time</p>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
+          <ResponsiveContainer width="100%" height={320}>
             <LineChart data={performanceTrendData}>
               <XAxis 
                 dataKey="month" 
@@ -285,8 +265,7 @@ const MetricsPage = () => {
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
-                domain={[0, 105]}
-                ticks={[15, 30, 45, 60, 75, 90, 105]}
+                domain={[0, 100]}
               />
               <Tooltip content={<CustomTooltip />} />
               {topReps.map((rep) => (
@@ -301,14 +280,10 @@ const MetricsPage = () => {
               ))}
             </LineChart>
           </ResponsiveContainer>
-          {/* Legend */}
           <div className="flex flex-wrap items-center justify-center gap-4 mt-4 pt-4 border-t border-border">
-            {mockReps.map((rep) => (
+            {topReps.map((rep) => (
               <div key={rep.id} className="flex items-center gap-2 text-sm">
-                <span 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: rep.color }}
-                />
+                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: rep.color }} />
                 <span className="text-muted-foreground">{rep.name}</span>
               </div>
             ))}
@@ -316,7 +291,7 @@ const MetricsPage = () => {
         </CardContent>
       </Card>
 
-      {/* Rep Ranking Table */}
+      {/* Rep Table */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">Rep Performance Overview</CardTitle>
@@ -340,7 +315,7 @@ const MetricsPage = () => {
                 {mockReps.map((rep, index) => (
                   <tr 
                     key={rep.id} 
-                    className="border-b border-border/50 hover:bg-muted/30 transition-colors cursor-pointer"
+                    className="border-b border-border/50 hover:bg-muted/30 transition-colors cursor-pointer group"
                     onClick={() => setSelectedRep(rep)}
                   >
                     <td className="py-4 px-6">
@@ -356,7 +331,7 @@ const MetricsPage = () => {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         <div 
-                          className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white text-sm"
+                          className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white text-sm group-hover:scale-105 transition-transform"
                           style={{ backgroundColor: rep.color }}
                         >
                           {rep.avatar}
@@ -397,7 +372,7 @@ const MetricsPage = () => {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="gap-1 text-muted-foreground hover:text-foreground"
+                        className="gap-1 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedRep(rep);
