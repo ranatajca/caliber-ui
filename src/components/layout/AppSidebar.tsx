@@ -16,15 +16,24 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useRole } from "@/contexts/RoleContext";
 
-const navigation = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  managerOnly?: boolean;
+  repOnly?: boolean;
+}
+
+const navigation: NavItem[] = [
   { name: "Home", href: "/home", icon: Home },
-  { name: "Metrics", href: "/metrics", icon: BarChart3 },
+  { name: "Metrics", href: "/metrics", icon: BarChart3, managerOnly: true },
   { name: "Ask AI", href: "/ask-ai", icon: Bot },
   { name: "AI Roleplays", href: "/roleplays", icon: Bot },
   { name: "Calls", href: "/calls", icon: Phone },
   { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
-  { name: "Team", href: "/team", icon: Users },
+  { name: "Team", href: "/team", icon: Users, managerOnly: true },
 ];
 
 interface AppSidebarProps {
@@ -35,6 +44,14 @@ interface AppSidebarProps {
 const AppSidebar = ({ isOpen, onClose }: AppSidebarProps) => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const { isManager } = useRole();
+
+  // Filter navigation based on role
+  const filteredNavigation = navigation.filter(item => {
+    if (item.managerOnly && !isManager) return false;
+    if (item.repOnly && isManager) return false;
+    return true;
+  });
 
   return (
     <aside className={cn(
@@ -87,7 +104,7 @@ const AppSidebar = ({ isOpen, onClose }: AppSidebarProps) => {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-2 overflow-y-auto">
         <ul className="space-y-1">
-          {navigation.map((item) => {
+          {filteredNavigation.map((item) => {
             const isActive = location.pathname.startsWith(item.href);
             return (
               <li key={item.name}>
