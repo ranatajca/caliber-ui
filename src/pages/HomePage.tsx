@@ -9,11 +9,14 @@ import {
   Star,
   Flame,
   Zap,
-  BookOpen
+  Shield,
+  Upload,
+  Video
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import TeamRaceChart from "@/components/TeamRaceChart";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -34,7 +37,7 @@ const HomePage = () => {
       onClick: () => navigate("/roleplays/1/start")
     },
     { 
-      title: "Warm Call Training", 
+      title: "Warm Call Roleplay", 
       description: "Handle a follow-up with existing lead", 
       icon: Zap,
       color: "bg-orange-500",
@@ -48,11 +51,11 @@ const HomePage = () => {
       onClick: () => navigate("/roleplays/3/start")
     },
     { 
-      title: "Objection Handling", 
-      description: "Practice budget & timing objections", 
-      icon: BookOpen,
+      title: "Upload Calls", 
+      description: "Analyze your real recordings", 
+      icon: Upload,
       color: "bg-green-500",
-      onClick: () => navigate("/training")
+      onClick: () => navigate("/settings")
     },
   ];
 
@@ -129,9 +132,17 @@ const HomePage = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+      {/* Team Race & Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        {/* Team Race Chart */}
+        <Card>
+          <CardContent className="p-5">
+            <TeamRaceChart />
+          </CardContent>
+        </Card>
+
         {/* Recent Calls */}
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader className="flex-row items-center justify-between pb-2 md:pb-4">
             <CardTitle className="text-base md:text-lg">Recent Calls</CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate("/calls")} className="gap-1 text-xs md:text-sm">
@@ -163,39 +174,59 @@ const HomePage = () => {
             ))}
           </CardContent>
         </Card>
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Recommended Roleplays */}
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader className="pb-2 md:pb-4">
             <CardTitle className="text-base md:text-lg flex items-center gap-2">
               <Star className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
               Recommended for You
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 md:space-y-3">
-            {recommendedRoleplays.map((roleplay) => (
-              <div 
-                key={roleplay.id}
-                onClick={() => navigate(`/roleplays/${roleplay.id}/start`)}
-                className="p-2 md:p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/50 cursor-pointer transition-all group"
-              >
-                <div className="flex items-center justify-between mb-1 md:mb-2">
-                  <p className="font-medium text-sm md:text-base">{roleplay.buyer}</p>
-                  <span className={`badge-trait text-xs ${roleplay.trait === "Nice" ? "badge-nice" : "badge-rude"}`}>
-                    {roleplay.trait}
-                  </span>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {recommendedRoleplays.map((roleplay) => (
+                <div 
+                  key={roleplay.id}
+                  onClick={() => navigate(`/roleplays/${roleplay.id}/start`)}
+                  className="p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/50 cursor-pointer transition-all group"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium text-sm">{roleplay.buyer}</p>
+                    <span className={`badge-trait text-xs ${roleplay.trait === "Nice" ? "badge-nice" : "badge-rude"}`}>
+                      {roleplay.trait}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{roleplay.role}</p>
+                  <div className="flex items-center justify-between">
+                    <span className={`badge-trait text-xs ${roleplay.type === "Cold Call" ? "badge-cold" : "badge-warm"}`}>
+                      {roleplay.type}
+                    </span>
+                    <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs">
+                      Start <Play className="w-3 h-3 ml-1" />
+                    </Button>
+                  </div>
                 </div>
-                <p className="text-xs md:text-sm text-muted-foreground mb-1 md:mb-2">{roleplay.role}</p>
-                <div className="flex items-center justify-between">
-                  <span className={`badge-trait text-xs ${roleplay.type === "Cold Call" ? "badge-cold" : "badge-warm"}`}>
-                    {roleplay.type}
-                  </span>
-                  <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs">
-                    Start <Play className="w-3 h-3 ml-1" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Call Integration Promo */}
+        <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+          <CardContent className="p-5">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+              <Video className="w-6 h-6 text-primary" />
+            </div>
+            <h3 className="font-semibold mb-2">Connect Your Calls</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Link Fathom or upload recordings to get real-time analysis of your actual sales calls.
+            </p>
+            <Button size="sm" onClick={() => navigate("/settings")} className="w-full">
+              Set Up Integrations
+            </Button>
           </CardContent>
         </Card>
       </div>

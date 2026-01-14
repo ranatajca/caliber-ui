@@ -12,7 +12,7 @@ import CallsPage from "./pages/CallsPage";
 import CallDetailPage from "./pages/CallDetailPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
-import Assignments from "./pages/Assignments";
+import TalentMarketplace from "./pages/TalentMarketplace";
 import Members from "./pages/Members";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -36,7 +36,7 @@ const App = () => (
             <Route path="/calls/:id" element={<CallDetailPage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/training" element={<Assignments />} />
+            <Route path="/talent" element={<TalentMarketplace />} />
             <Route path="/team" element={<Members />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
