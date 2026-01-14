@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import CallIntegrations from "@/components/CallIntegrations";
+import ScorecardManager from "@/components/ScorecardManager";
 
 const Settings = () => {
   const [firstName, setFirstName] = useState("Saad");
@@ -163,6 +164,9 @@ const Settings = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Scorecards */}
+      <ScorecardManager />
 
       {/* Call Integrations */}
       <CallIntegrations />

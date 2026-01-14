@@ -19,14 +19,38 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
-  Sparkles
+  Sparkles,
+  RefreshCw,
+  DollarSign,
+  MessageSquare,
+  Send,
+  Video,
+  Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
-type Tab = "summary" | "scorecard" | "transcript" | "insights";
+type Tab = "summary" | "scorecard" | "transcript" | "insights" | "feedback";
 
 interface TranscriptMessage {
   id: string;
@@ -56,6 +80,7 @@ const CallDetailPage = () => {
     { id: "scorecard", label: "Scorecard" },
     { id: "transcript", label: "Transcript" },
     { id: "insights", label: "AI Insights" },
+    { id: "feedback", label: "Review" },
   ];
 
   return (
@@ -160,6 +185,7 @@ const CallDetailPage = () => {
             {activeTab === "scorecard" && <ScorecardTab expandedCriteria={expandedCriteria} setExpandedCriteria={setExpandedCriteria} />}
             {activeTab === "transcript" && <TranscriptTab messages={mockTranscript} />}
             {activeTab === "insights" && <InsightsTab />}
+            {activeTab === "feedback" && <FeedbackTab />}
           </div>
         </div>
 
@@ -204,6 +230,12 @@ const CallDetailPage = () => {
           {/* Quick Actions */}
           <Card>
             <CardContent className="p-4 space-y-2">
+              <Button variant="outline" className="w-full justify-start gap-2" onClick={() => {
+                toast.success("Re-analyzing call...");
+              }}>
+                <RefreshCw className="w-4 h-4" />
+                Re-Analyze Call
+              </Button>
               <Button variant="outline" className="w-full justify-start gap-2" onClick={() => toast.success("Recording downloaded!")}>
                 <Download className="w-4 h-4" />
                 Download Recording
@@ -215,9 +247,21 @@ const CallDetailPage = () => {
                 <Copy className="w-4 h-4" />
                 Copy Transcript
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2" onClick={() => navigate("/calls")}>
-                <ExternalLink className="w-4 h-4" />
-                View Similar Calls
+            </CardContent>
+          </Card>
+
+          {/* Deal Update */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-success" />
+                Deal Update
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Input placeholder="Deal value ($)" type="number" />
+              <Button className="w-full" onClick={() => toast.success("Deal updated!")}>
+                Update Deal
               </Button>
             </CardContent>
           </Card>
@@ -503,6 +547,62 @@ const InsightsTab = () => (
     </Card>
   </div>
 );
+
+const FeedbackTab = () => {
+  const [feedback, setFeedback] = useState("");
+  
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-primary" />
+            Leave Coaching Feedback
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea 
+            placeholder="Enter your feedback for this rep... (e.g., 'Work on this next week', 'Great job on discovery questions')"
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            rows={4}
+          />
+          <div className="flex gap-2">
+            <Button onClick={() => {
+              if (feedback.trim()) {
+                toast.success("Feedback sent! Rep will be notified.");
+                setFeedback("");
+              }
+            }} className="gap-2">
+              <Send className="w-4 h-4" />
+              Send Feedback
+            </Button>
+            <Button variant="outline" className="gap-2" onClick={() => toast.info("Notification scheduled")}>
+              <Bell className="w-4 h-4" />
+              Notify Rep
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Previous Reviews</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="p-4 bg-muted/50 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium">SK</div>
+              <span className="font-medium text-sm">Saad Khan</span>
+              <span className="text-xs text-muted-foreground">2 days ago</span>
+            </div>
+            <p className="text-sm text-muted-foreground">Great improvement on objection handling. Focus on asking more follow-up questions next time.</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 const LearningResource = ({ title, source }: { title: string; source: string }) => (
   <div className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/30 cursor-pointer transition-colors">
