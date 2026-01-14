@@ -4,14 +4,19 @@ import {
   ArrowLeft,
   Calendar,
   RefreshCw,
-  Bot,
-  Video,
   ChevronRight,
-  Info
+  Info,
+  Phone,
+  Target,
+  Headphones,
+  MessageSquare,
+  Zap,
+  TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   LineChart,
   Line,
@@ -27,10 +32,12 @@ interface Rep {
   name: string;
   avatar: string;
   email: string;
-  score: number;
+  callScore: number;
   calls: number;
-  winRate: number;
-  revenue: number;
+  roleplayScore: number;
+  talkRatio: number;
+  discoveryRate: number;
+  objectionHandling: number;
   color: string;
 }
 
@@ -83,12 +90,15 @@ const getRepStrengths = (repName: string) => {
   return [];
 };
 
-// Mock skill profile
-const getSkillProfile = (repName: string) => {
-  if (repName === "Daisy Nicolle") {
-    return { skill: "Listening", score: 23, status: "Needs Focus" };
-  }
-  return null;
+// Mock skill breakdown
+const getSkillBreakdown = (rep: Rep) => {
+  return [
+    { name: "Discovery Questions", score: rep.discoveryRate, target: 80 },
+    { name: "Active Listening", score: Math.max(100 - rep.talkRatio, 20), target: 70 },
+    { name: "Objection Handling", score: rep.objectionHandling, target: 75 },
+    { name: "Next Steps", score: Math.round(rep.callScore * 0.9), target: 80 },
+    { name: "Rapport Building", score: Math.round(rep.callScore * 1.05), target: 70 },
+  ];
 };
 
 const sourceFilters = ["Live Calls", "AI Roleplay"];
@@ -100,7 +110,7 @@ const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
   const performanceData = getRepPerformanceData(rep.name);
   const objections = getRepObjections(rep.name);
   const strengths = getRepStrengths(rep.name);
-  const skillProfile = getSkillProfile(rep.name);
+  const skillBreakdown = getSkillBreakdown(rep);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -122,9 +132,17 @@ const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
           <Button variant="ghost" size="icon" onClick={onBack}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-display font-bold">{rep.name}</h1>
-            <p className="text-muted-foreground">{rep.email}</p>
+          <div className="flex items-center gap-3">
+            <div 
+              className="w-12 h-12 rounded-full flex items-center justify-center font-semibold text-white"
+              style={{ backgroundColor: rep.color }}
+            >
+              {rep.avatar}
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-display font-bold">{rep.name}</h1>
+              <p className="text-muted-foreground">{rep.email}</p>
+            </div>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -154,26 +172,49 @@ const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
       </div>
 
       {/* Rep KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground mb-1">Cash Collected</p>
-            <p className="text-3xl font-bold">${rep.revenue.toLocaleString()}</p>
-            <p className="text-sm text-muted-foreground mt-1">Revenue generated</p>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Phone className="w-4 h-4 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground">Calls Reviewed</p>
+            </div>
+            <p className="text-2xl font-bold">{rep.calls}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground mb-1">Avg Live Score</p>
-            <p className="text-3xl font-bold">{rep.score}</p>
-            <p className="text-sm text-muted-foreground mt-1">Across {rep.calls} calls</p>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-accent/10">
+                <Target className="w-4 h-4 text-accent" />
+              </div>
+              <p className="text-sm text-muted-foreground">Call Score</p>
+            </div>
+            <p className="text-2xl font-bold">{rep.callScore}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground mb-1">Close Rate</p>
-            <p className="text-3xl font-bold">{rep.winRate}%</p>
-            <p className="text-sm text-muted-foreground mt-1">Win rate</p>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-success/10">
+                <Zap className="w-4 h-4 text-success" />
+              </div>
+              <p className="text-sm text-muted-foreground">Roleplay Score</p>
+            </div>
+            <p className="text-2xl font-bold">{rep.roleplayScore}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-warning/10">
+                <Headphones className="w-4 h-4 text-warning" />
+              </div>
+              <p className="text-sm text-muted-foreground">Talk Ratio</p>
+            </div>
+            <p className="text-2xl font-bold">{rep.talkRatio > 0 ? `${rep.talkRatio}%` : "—"}</p>
           </CardContent>
         </Card>
       </div>
@@ -181,8 +222,11 @@ const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
       {/* Performance Trend Chart */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Performance Trend</CardTitle>
-          <p className="text-sm text-muted-foreground">Metrics over time for {rep.name}</p>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-muted-foreground" />
+            <CardTitle className="text-lg">Performance Trend</CardTitle>
+          </div>
+          <p className="text-sm text-muted-foreground">Call score improvement over time</p>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -213,79 +257,51 @@ const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
         </CardContent>
       </Card>
 
-      {/* Bottom Section - 3 columns */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Performance Profile */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Performance Profile</CardTitle>
-            <p className="text-sm text-muted-foreground">{rep.name}'s sales skill scores</p>
-          </CardHeader>
-          <CardContent>
-            {skillProfile ? (
-              <div className="space-y-4">
-                {/* Radar-style visualization */}
-                <div className="flex flex-col items-center justify-center py-8">
-                  <div className="relative w-48 h-48">
-                    {/* Background circles */}
-                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                      <circle cx="50" cy="50" r="45" fill="none" stroke="hsl(var(--border))" strokeWidth="0.5" />
-                      <circle cx="50" cy="50" r="35" fill="none" stroke="hsl(var(--border))" strokeWidth="0.5" />
-                      <circle cx="50" cy="50" r="25" fill="none" stroke="hsl(var(--border))" strokeWidth="0.5" />
-                      <circle cx="50" cy="50" r="15" fill="none" stroke="hsl(var(--border))" strokeWidth="0.5" />
-                      {/* Score indicator */}
-                      <circle 
-                        cx="50" 
-                        cy={50 - (skillProfile.score / 100 * 45)} 
-                        r="4" 
-                        fill={rep.color}
-                      />
-                      {/* Label line */}
-                      <line 
-                        x1="50" 
-                        y1={50 - (skillProfile.score / 100 * 45)} 
-                        x2="75" 
-                        y2={50 - (skillProfile.score / 100 * 45) - 10}
-                        stroke="hsl(var(--border))"
-                        strokeWidth="0.5"
-                      />
-                    </svg>
-                    {/* Label */}
-                    <div className="absolute top-1/4 right-0 text-sm">
-                      <p className="font-medium">{skillProfile.skill}</p>
-                      <p className="text-muted-foreground">{skillProfile.score}/100</p>
-                      <p className="text-destructive text-xs">{skillProfile.status}</p>
-                    </div>
-                    {/* Listening label at top */}
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">
-                      Listening
-                    </div>
-                  </div>
+      {/* Skill Breakdown */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Skill Breakdown</CardTitle>
+          <p className="text-sm text-muted-foreground">Performance across key coaching areas</p>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {skillBreakdown.map((skill, index) => (
+              <div key={index} className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{skill.name}</span>
+                  <span className={`font-medium ${
+                    skill.score >= skill.target ? "text-success" : 
+                    skill.score >= skill.target * 0.7 ? "text-warning" : 
+                    "text-destructive"
+                  }`}>
+                    {skill.score}/100
+                  </span>
                 </div>
-                <div className="text-center border-t border-border pt-4">
-                  <p className="text-sm text-muted-foreground">
-                    Average: <span className="text-warning font-medium">{skillProfile.score}/100</span>{" "}
-                    <span className="text-destructive">({skillProfile.status})</span>
-                  </p>
+                <div className="relative">
+                  <Progress value={skill.score} className="h-2" />
+                  {/* Target marker */}
+                  <div 
+                    className="absolute top-0 w-0.5 h-2 bg-foreground/50"
+                    style={{ left: `${skill.target}%` }}
+                  />
                 </div>
+                <p className="text-xs text-muted-foreground">Target: {skill.target}</p>
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <p className="text-muted-foreground text-sm">No skill data yet for {rep.name}</p>
-                <div className="mt-4 text-xs text-muted-foreground">Discovery</div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
+      {/* Bottom Section - 2 columns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Top Objections */}
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <CardTitle className="text-lg">Top Objections</CardTitle>
+              <CardTitle className="text-lg">Top Objections Faced</CardTitle>
               <Info className="w-4 h-4 text-muted-foreground" />
             </div>
-            <p className="text-sm text-muted-foreground">Most common objections encountered • click to view calls</p>
+            <p className="text-sm text-muted-foreground">Click to view related calls</p>
           </CardHeader>
           <CardContent>
             {objections.length > 0 ? (
@@ -324,7 +340,7 @@ const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
               <CardTitle className="text-lg">Key Strengths</CardTitle>
               <Info className="w-4 h-4 text-muted-foreground" />
             </div>
-            <p className="text-sm text-muted-foreground">Most frequently demonstrated skills • click to view calls</p>
+            <p className="text-sm text-muted-foreground">Click to view related calls</p>
           </CardHeader>
           <CardContent>
             {strengths.length > 0 ? (
