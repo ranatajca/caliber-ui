@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Building2, Sparkles, Save, Plus, X, Wand2, Target, CheckCircle, Library, PenLine, Loader2 } from "lucide-react";
+import { ArrowLeft, User, Building2, Sparkles, Save, Plus, X, Wand2, Target, CheckCircle, Library, PenLine, Loader2, Upload, FileAudio, Trash2, Shield, Lock, Star, Crown, Info, Volume2, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 const personalityTraits = [
   { id: "busy", label: "Busy", color: "bg-orange-100 text-orange-700 border-orange-200" },
@@ -99,8 +102,23 @@ interface ScoringCriterion {
   isCustom?: boolean;
 }
 
+interface UploadedCall {
+  id: string;
+  name: string;
+  size: string;
+  duration: string;
+  uploadedAt: Date;
+  status: 'uploading' | 'processing' | 'ready' | 'error';
+  progress?: number;
+}
+
+type ScoringMode = 'general' | 'advanced';
+
 const NewRoleplay = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Basic form state
   const [buyerName, setBuyerName] = useState("");
   const [buyerRole, setBuyerRole] = useState("");
   const [buyerCompany, setBuyerCompany] = useState("");
@@ -113,6 +131,11 @@ const NewRoleplay = () => {
     "I need to talk to my team first."
   ]);
   const [newObjection, setNewObjection] = useState("");
+  
+  // Scoring mode state
+  const [scoringMode, setScoringMode] = useState<ScoringMode>('general');
+  const [uploadedCalls, setUploadedCalls] = useState<UploadedCall[]>([]);
+  const [isUploadingCall, setIsUploadingCall] = useState(false);
   
   // Scoring criteria state
   const [selectedCriteria, setSelectedCriteria] = useState<ScoringCriterion[]>([
@@ -148,6 +171,89 @@ const NewRoleplay = () => {
 
   const removeObjection = (index: number) => {
     setObjections(objections.filter((_, i) => i !== index));
+  };
+
+  // File upload handlers
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/m4a', 'audio/webm', 'video/mp4', 'video/webm'];
+    
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|m4a|mp4|webm)$/i)) {
+      toast.error("Please upload an audio or video file (MP3, WAV, M4A, MP4, WebM)");
+      return;
+    }
+    
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error("File size must be under 100MB");
+      return;
+    }
+    
+    setIsUploadingCall(true);
+    
+    const newCall: UploadedCall = {
+      id: `call-${Date.now()}`,
+      name: file.name,
+      size: formatFileSize(file.size),
+      duration: "Processing...",
+      uploadedAt: new Date(),
+      status: 'uploading',
+      progress: 0,
+    };
+    
+    setUploadedCalls(prev => [...prev, newCall]);
+    
+    // Simulate upload progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress += Math.random() * 25;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(progressInterval);
+        
+        // Transition to processing
+        setUploadedCalls(prev => prev.map(c => 
+          c.id === newCall.id 
+            ? { ...c, status: 'processing' as const, progress: 100 }
+            : c
+        ));
+        
+        // Simulate processing (transcription, analysis)
+        setTimeout(() => {
+          setUploadedCalls(prev => prev.map(c => 
+            c.id === newCall.id 
+              ? { ...c, status: 'ready' as const, duration: formatDuration(Math.random() * 3600 + 300) }
+              : c
+          ));
+          setIsUploadingCall(false);
+          toast.success("Call uploaded and processed successfully!");
+        }, 2000);
+      } else {
+        setUploadedCalls(prev => prev.map(c => 
+          c.id === newCall.id ? { ...c, progress } : c
+        ));
+      }
+    }, 200);
+  };
+
+  const removeUploadedCall = (callId: string) => {
+    setUploadedCalls(prev => prev.filter(c => c.id !== callId));
+    toast.success("Call recording removed");
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const toggleCriterion = (criterion: ScoringCriterion) => {
@@ -325,6 +431,256 @@ const NewRoleplay = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Scoring Mode Selection - NEW */}
+        <Card className="border-2 border-dashed">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              Scoring Mode
+            </CardTitle>
+            <CardDescription>
+              Choose how your performance will be evaluated
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* General Score Option */}
+              <button
+                onClick={() => setScoringMode('general')}
+                className={cn(
+                  "relative p-4 md:p-5 rounded-xl border-2 text-left transition-all",
+                  scoringMode === 'general'
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/30"
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    "p-2 rounded-lg",
+                    scoringMode === 'general' ? "bg-primary/20" : "bg-muted"
+                  )}>
+                    <Mic className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">General Sales Score</p>
+                      <Badge variant="secondary" className="text-xs">Free</Badge>
+                    </div>
+                    <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                      AI roleplay-based assessment. Product-agnostic evaluation of core skills.
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      <span className="text-[10px] px-2 py-0.5 bg-muted rounded-full">Objection Handling</span>
+                      <span className="text-[10px] px-2 py-0.5 bg-muted rounded-full">Tonality</span>
+                      <span className="text-[10px] px-2 py-0.5 bg-muted rounded-full">Persistence</span>
+                      <span className="text-[10px] px-2 py-0.5 bg-muted rounded-full">Sincerity</span>
+                    </div>
+                  </div>
+                </div>
+                {scoringMode === 'general' && (
+                  <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-primary" />
+                )}
+              </button>
+
+              {/* Advanced Score Option */}
+              <button
+                onClick={() => setScoringMode('advanced')}
+                className={cn(
+                  "relative p-4 md:p-5 rounded-xl border-2 text-left transition-all",
+                  scoringMode === 'advanced'
+                    ? "border-accent bg-accent/5"
+                    : "border-border hover:border-accent/30"
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    "p-2 rounded-lg",
+                    scoringMode === 'advanced' ? "bg-accent/20" : "bg-muted"
+                  )}>
+                    <Crown className="w-5 h-5 text-accent" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">Advanced Custom Score</p>
+                      <Badge className="text-xs bg-gradient-to-r from-accent to-primary text-white border-0">Pro</Badge>
+                    </div>
+                    <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                      Enhanced scoring using your real call recordings + roleplays.
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      <span className="text-[10px] px-2 py-0.5 bg-accent/10 text-accent rounded-full">Real Battlefield Data</span>
+                      <span className="text-[10px] px-2 py-0.5 bg-accent/10 text-accent rounded-full">Custom Benchmarks</span>
+                      <span className="text-[10px] px-2 py-0.5 bg-accent/10 text-accent rounded-full">Higher Accuracy</span>
+                    </div>
+                  </div>
+                </div>
+                {scoringMode === 'advanced' && (
+                  <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-accent" />
+                )}
+              </button>
+            </div>
+
+            {/* Info about scoring modes */}
+            <div className={cn(
+              "flex items-start gap-3 p-3 rounded-lg text-sm",
+              scoringMode === 'general' ? "bg-primary/5" : "bg-accent/5"
+            )}>
+              <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <div>
+                {scoringMode === 'general' ? (
+                  <p className="text-muted-foreground">
+                    <span className="font-medium text-foreground">Perfect for recruiting assessments.</span>{" "}
+                    Evaluates sales fundamentals without needing product-specific context. Scales to 1,000+ assessments/day.
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground">
+                    <span className="font-medium text-foreground">Best for team development.</span>{" "}
+                    Upload your top sales calls to create a personalized scoring model based on your team's winning patterns.
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Real Call Uploads - Only shown for Advanced mode */}
+        {scoringMode === 'advanced' && (
+          <Card className="border-accent/30">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Upload className="w-5 h-5 text-accent" />
+                    Real Call Recordings
+                    <Badge className="text-[10px] bg-accent/20 text-accent border-0">Optional</Badge>
+                  </CardTitle>
+                  <CardDescription>
+                    Upload your best sales calls to create a custom scoring baseline
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 text-accent" />
+                  <span className="text-xs text-accent font-medium">+15% accuracy boost</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Privacy Notice */}
+              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border border-border">
+                <Shield className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <Lock className="w-3 h-3" />
+                    Privacy & Compliance
+                  </p>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Recordings are processed to extract scoring patterns only</li>
+                    <li>• Full recordings are <span className="font-medium text-foreground">not stored long-term</span> - deleted after processing</li>
+                    <li>• Customer names and sensitive info are automatically stripped</li>
+                    <li>• Only derived scoring metrics are retained for your custom model</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Upload Zone */}
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className={cn(
+                  "relative border-2 border-dashed rounded-xl p-6 md:p-8 text-center cursor-pointer transition-all",
+                  "hover:border-accent/50 hover:bg-accent/5",
+                  isUploadingCall ? "pointer-events-none opacity-50" : ""
+                )}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*,video/*,.mp3,.wav,.m4a,.mp4,.webm"
+                  className="hidden"
+                  onChange={(e) => handleFileUpload(e.target.files)}
+                />
+                <div className="flex flex-col items-center gap-3">
+                  <div className="p-4 rounded-full bg-accent/10">
+                    <FileAudio className="w-8 h-8 text-accent" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Drop your best sales calls here</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      MP3, WAV, M4A, MP4, WebM • Max 100MB per file
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" className="mt-2 gap-2">
+                    <Upload className="w-4 h-4" />
+                    Browse Files
+                  </Button>
+                </div>
+              </div>
+
+              {/* Uploaded Calls List */}
+              {uploadedCalls.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Uploaded Calls ({uploadedCalls.length})</p>
+                  <div className="space-y-2">
+                    {uploadedCalls.map((call) => (
+                      <div
+                        key={call.id}
+                        className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg"
+                      >
+                        <div className={cn(
+                          "p-2 rounded-lg",
+                          call.status === 'ready' ? "bg-success/10" :
+                          call.status === 'error' ? "bg-destructive/10" :
+                          "bg-accent/10"
+                        )}>
+                          {call.status === 'ready' ? (
+                            <CheckCircle className="w-4 h-4 text-success" />
+                          ) : call.status === 'error' ? (
+                            <X className="w-4 h-4 text-destructive" />
+                          ) : (
+                            <Volume2 className="w-4 h-4 text-accent" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{call.name}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>{call.size}</span>
+                            <span>•</span>
+                            <span>{call.duration}</span>
+                            {call.status === 'uploading' && <span>• Uploading...</span>}
+                            {call.status === 'processing' && <span>• Processing...</span>}
+                          </div>
+                          {(call.status === 'uploading' || call.status === 'processing') && call.progress !== undefined && (
+                            <Progress value={call.progress} className="h-1 mt-2" />
+                          )}
+                        </div>
+                        {call.status === 'ready' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={() => removeUploadedCall(call.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recommendations */}
+              <div className="p-3 bg-muted/30 rounded-lg">
+                <p className="text-xs font-medium mb-2">📈 For best results:</p>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  <li>• Upload 3-5 of your best closed-won calls</li>
+                  <li>• Mix different call types (cold, discovery, closing)</li>
+                  <li>• Include calls from your top performers</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Scoring Criteria - NEW SECTION */}
         <Card>
