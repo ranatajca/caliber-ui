@@ -17,7 +17,10 @@ import {
   Lightbulb,
   Copy,
   ThumbsUp,
-  ThumbsDown
+  ThumbsDown,
+  Zap,
+  Award,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useRole } from "@/contexts/RoleContext";
 
 interface Message {
   id: string;
@@ -41,7 +45,8 @@ interface AIInsight {
   description: string;
 }
 
-const suggestedQuestions = [
+// Manager-focused questions
+const managerQuestions = [
   {
     icon: TrendingDown,
     question: "Why did our close rate drop last week?",
@@ -74,7 +79,42 @@ const suggestedQuestions = [
   },
 ];
 
-const exampleResponses: Record<string, Message> = {
+// Rep-focused questions for personal coaching
+const repQuestions = [
+  {
+    icon: Target,
+    question: "How can I improve my discovery questions?",
+    category: "Coaching"
+  },
+  {
+    icon: TrendingUp,
+    question: "What am I doing well on my calls?",
+    category: "Strengths"
+  },
+  {
+    icon: AlertCircle,
+    question: "What's my biggest weakness right now?",
+    category: "Growth"
+  },
+  {
+    icon: Zap,
+    question: "Give me tips for handling price objections",
+    category: "Objections"
+  },
+  {
+    icon: BookOpen,
+    question: "What roleplay should I practice next?",
+    category: "Practice"
+  },
+  {
+    icon: Award,
+    question: "How do I compare to top performers?",
+    category: "Benchmark"
+  },
+];
+
+// Manager example responses
+const managerResponses: Record<string, Message> = {
   "biggest performance gap": {
     id: "resp-1",
     role: "assistant",
@@ -131,11 +171,138 @@ Open-ended questions decreased by 35%. Reps are jumping to pitches too quickly.
   },
 };
 
+// Rep example responses
+const repResponses: Record<string, Message> = {
+  "improve my discovery": {
+    id: "resp-rep-1",
+    role: "assistant",
+    content: `Great question! Here's how you can level up your discovery:
+
+**Your Current Discovery Score: 74%**
+
+You're doing well at building rapport, but I noticed some opportunities:
+
+**Areas to Improve:**
+• You ask an average of 3 open-ended questions per call - aim for 5-7
+• Try the "tell me more" technique when prospects give short answers
+• Your discovery phase averages 2.5 minutes - top performers spend 4-5 minutes
+
+**Specific Tips:**
+1. Start with broader situational questions before diving into pain points
+2. Use the SPICED framework: Situation → Pain → Impact → Critical Event → Decision
+3. Pause for 3 seconds after questions - you tend to fill silence too quickly
+
+**Practice Suggestion:**
+I recommend the "Discovery Deep Dive" roleplay with a hesitant CFO persona. This will help you practice extracting information from guarded prospects.`,
+    timestamp: new Date(),
+    insights: [
+      { type: "metric", title: "Discovery Score", value: "74%", description: "Room for improvement" },
+      { type: "recommendation", title: "Focus", value: "", description: "More open-ended questions" },
+    ]
+  },
+  "doing well": {
+    id: "resp-rep-2",
+    role: "assistant",
+    content: `Here's what you're crushing it on, Saad! 🎉
+
+**Your Top Strengths:**
+
+**1. Rapport Building - 92%**
+You're excellent at creating a comfortable atmosphere. Prospects often mention feeling understood.
+
+**2. Objection Handling - 85%**
+When you get price objections, you successfully redirect to value 80% of the time.
+
+**3. Active Listening - 88%**
+Your talk ratio (38%) is better than 75% of the team. You let prospects speak.
+
+**Recent Wins:**
+• Last Tuesday's call with Marcus Chen - perfect discovery flow
+• You closed 2 deals this week using the "cost of inaction" technique
+• Your NPS from prospects is 8.5/10
+
+**Keep Doing:**
+• Your "mirroring" technique in discovery
+• The way you summarize before transitioning to next steps
+• Your energy level in the first 30 seconds`,
+    timestamp: new Date(),
+    insights: [
+      { type: "metric", title: "Rapport", value: "92%", description: "Your top skill" },
+      { type: "metric", title: "Talk Ratio", value: "38%", description: "Better than 75% of team" },
+    ]
+  },
+  "biggest weakness": {
+    id: "resp-rep-3",
+    role: "assistant",
+    content: `Let's turn this into an opportunity:
+
+**Your Biggest Growth Area: Closing**
+
+Your closing score is **68%**, which is your lowest category.
+
+**What I've Noticed:**
+• You often get to the end of calls without a clear next step
+• Only 60% of your calls have a confirmed calendar invite at the end
+• You hesitate when it's time to ask for the commitment
+
+**Why This Matters:**
+Prospects who don't book next steps within 24 hours are 40% less likely to close.
+
+**Action Plan:**
+1. Practice trial closes mid-call: "Based on what you've shared, would this be valuable?"
+2. Always propose a specific date/time, not "let's find a time"
+3. Try the assumptive close: "I'll send over the proposal - does Tuesday or Wednesday work for our next call?"
+
+**Roleplay Assignment:**
+I've queued up 3 "Closing Mastery" roleplays for you. The first one focuses on the hesitant buyer who needs a gentle push.`,
+    timestamp: new Date(),
+    insights: [
+      { type: "warning", title: "Closing Score", value: "68%", description: "Needs improvement" },
+      { type: "recommendation", title: "Next Step", value: "", description: "Practice trial closes" },
+    ]
+  },
+  "price objection": {
+    id: "resp-rep-4",
+    role: "assistant",
+    content: `Price objections are common - here's your playbook:
+
+**Your Price Objection Success Rate: 72%**
+
+**Top Techniques That Work for You:**
+
+**1. The "Cost of Inaction" Play**
+When you've used this technique, your success rate jumps to 85%.
+"What's it costing you each month to *not* solve this problem?"
+
+**2. Break It Down**
+Works 78% of the time: "That's $X per day, less than your team's coffee budget"
+
+**3. ROI Redirect**
+"You mentioned losing 5 hours/week on this. At your team's hourly rate, that's $Y/month - we'd pay for ourselves in 2 months"
+
+**Phrases to Avoid:**
+• "I understand price is a concern" (sounds scripted)
+• "Let me check if I can get a discount" (kills your leverage)
+
+**Practice This:**
+Try the "Budget-Conscious CFO" roleplay - it specifically drills price objection handling with a tough negotiator.`,
+    timestamp: new Date(),
+    insights: [
+      { type: "metric", title: "Objection Win Rate", value: "72%", description: "On price objections" },
+      { type: "recommendation", title: "Best Technique", value: "85%", description: "Cost of Inaction" },
+    ]
+  },
+};
+
 const AskAIPage = () => {
+  const { isManager } = useRole();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const suggestedQuestions = isManager ? managerQuestions : repQuestions;
+  const exampleResponses = isManager ? managerResponses : repResponses;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -144,6 +311,11 @@ const AskAIPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Clear messages when role changes
+  useEffect(() => {
+    setMessages([]);
+  }, [isManager]);
 
   const handleSend = async (question?: string) => {
     const messageText = question || inputValue;
@@ -171,7 +343,8 @@ const AskAIPage = () => {
     const aiResponse: Message = matchKey ? exampleResponses[matchKey] : {
       id: `resp-${Date.now()}`,
       role: "assistant",
-      content: `I've analyzed your call data for that question. Here's what I found:
+      content: isManager 
+        ? `I've analyzed your team's call data for that question. Here's what I found:
 
 **Summary**
 Based on ${Math.floor(Math.random() * 100) + 50} calls from the past 30 days, your team is performing at **${Math.floor(Math.random() * 15) + 75}%** overall.
@@ -186,12 +359,36 @@ Based on ${Math.floor(Math.random() * 100) + 50} calls from the past 30 days, yo
 2. Consider assigning targeted AI roleplays
 3. Schedule 1:1 reviews with reps below benchmark
 
-Would you like me to drill down into any specific area?`,
+Would you like me to drill down into any specific area?`
+        : `Based on your recent calls, here's my analysis:
+
+**Your Performance Summary**
+Looking at your last ${Math.floor(Math.random() * 15) + 10} calls, you're scoring **${Math.floor(Math.random() * 10) + 75}%** overall.
+
+**What You're Doing Well:**
+• Your rapport building is solid at 88%
+• You've improved talk ratio by 5% this week
+• Great job on the discovery in your last 3 calls
+
+**Opportunities:**
+• Try asking one more follow-up question before pitching
+• Consider using the "feel, felt, found" technique for objections
+• Your closing could be more assertive
+
+**Suggested Practice:**
+I'd recommend the "Assertive Close" roleplay to work on that last point.
+
+Want me to break down any of these areas further?`,
       timestamp: new Date(),
-      insights: [
-        { type: "metric" as const, title: "Team Score", value: `${Math.floor(Math.random() * 15) + 75}%`, description: "30-day average" },
-        { type: "recommendation" as const, title: "Action", value: "", description: "Review flagged calls" },
-      ]
+      insights: isManager 
+        ? [
+            { type: "metric" as const, title: "Team Score", value: `${Math.floor(Math.random() * 15) + 75}%`, description: "30-day average" },
+            { type: "recommendation" as const, title: "Action", value: "", description: "Review flagged calls" },
+          ]
+        : [
+            { type: "metric" as const, title: "Your Score", value: `${Math.floor(Math.random() * 10) + 75}%`, description: "Recent performance" },
+            { type: "recommendation" as const, title: "Practice", value: "", description: "Assertive Close roleplay" },
+          ]
     };
 
     setIsTyping(false);
@@ -207,12 +404,22 @@ Would you like me to drill down into any specific area?`,
     <div className="p-4 md:p-6 max-w-4xl mx-auto animate-fade-in">
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto mb-4">
+        <div className={cn(
+          "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4",
+          isManager 
+            ? "bg-gradient-to-br from-primary to-accent" 
+            : "bg-gradient-to-br from-accent to-primary"
+        )}>
           <Sparkles className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-2xl md:text-3xl font-display font-bold">Ask AI Sales Manager</h1>
+        <h1 className="text-2xl md:text-3xl font-display font-bold">
+          {isManager ? "Ask AI Sales Manager" : "AI Sales Coach"}
+        </h1>
         <p className="text-muted-foreground mt-2 max-w-lg mx-auto">
-          Ask natural-language questions about your team's performance, diagnose gaps, and get actionable insights.
+          {isManager 
+            ? "Ask natural-language questions about your team's performance, diagnose gaps, and get actionable insights."
+            : "Get personalized coaching, improve your skills, and learn what top performers do differently."
+          }
         </p>
       </div>
 
@@ -222,7 +429,10 @@ Would you like me to drill down into any specific area?`,
           {messages.length === 0 ? (
             <div className="py-8">
               <p className="text-center text-muted-foreground mb-6">
-                Try asking one of these questions to get started:
+                {isManager 
+                  ? "Try asking one of these questions to analyze your team:"
+                  : "Ask me anything about improving your sales skills:"
+                }
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {suggestedQuestions.map((sq, index) => (
@@ -253,7 +463,12 @@ Would you like me to drill down into any specific area?`,
                   )}
                 >
                   {message.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
+                      isManager 
+                        ? "bg-gradient-to-br from-primary to-accent"
+                        : "bg-gradient-to-br from-accent to-primary"
+                    )}>
                       <Bot className="w-4 h-4 text-white" />
                     </div>
                   )}
@@ -341,13 +556,20 @@ Would you like me to drill down into any specific area?`,
               ))}
               {isTyping && (
                 <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center",
+                    isManager 
+                      ? "bg-gradient-to-br from-primary to-accent"
+                      : "bg-gradient-to-br from-accent to-primary"
+                  )}>
                     <Bot className="w-4 h-4 text-white" />
                   </div>
                   <div className="bg-muted rounded-2xl p-4">
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm text-muted-foreground">Analyzing your data...</span>
+                      <span className="text-sm text-muted-foreground">
+                        {isManager ? "Analyzing team data..." : "Analyzing your performance..."}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -361,7 +583,10 @@ Would you like me to drill down into any specific area?`,
       {/* Input */}
       <div className="flex gap-3">
         <Input
-          placeholder="Ask anything about your team's performance..."
+          placeholder={isManager 
+            ? "Ask anything about your team's performance..." 
+            : "Ask for coaching tips, feedback, or practice suggestions..."
+          }
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={(e) => e.key === "Enter" && handleSend()}
