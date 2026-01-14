@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useRole } from "@/contexts/RoleContext";
 import {
   Select,
   SelectContent,
@@ -213,13 +214,20 @@ const filters = ["All Calls", "Cold Calls", "Warm Calls", "Discovery Calls"];
 
 const CallsPage = () => {
   const navigate = useNavigate();
+  const { isManager } = useRole();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All Calls");
   const [repFilter, setRepFilter] = useState("all");
 
+  // Simulated current user (in real app, this would come from auth)
+  const currentUserName = "Sarah Chen";
+
   const uniqueReps = Array.from(new Set(mockCalls.map(c => c.repName)));
 
-  const filteredCalls = mockCalls.filter(call => {
+  // Filter calls: Managers see all, Reps only see their own
+  const baseCalls = isManager ? mockCalls : mockCalls.filter(c => c.repName === currentUserName);
+
+  const filteredCalls = baseCalls.filter(call => {
     const matchesSearch = 
       call.buyerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       call.buyerCompany.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -272,9 +280,14 @@ const CallsPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-xl md:text-2xl font-display font-bold">Call Library</h1>
+          <h1 className="text-xl md:text-2xl font-display font-bold">
+            {isManager ? "Call Library" : "My Calls"}
+          </h1>
           <p className="text-sm md:text-base text-muted-foreground mt-1">
-            Review and analyze team call recordings
+            {isManager 
+              ? "Review and analyze team call recordings" 
+              : "Review your past call recordings and performance"
+            }
           </p>
         </div>
         <Button onClick={() => navigate("/roleplays")} className="gap-2 w-full sm:w-auto">
@@ -285,10 +298,24 @@ const CallsPage = () => {
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-        <StatCard label="Total Calls" value={filteredCalls.length.toString()} change={`${uniqueReps.length} reps`} />
+        <StatCard 
+          label="Total Calls" 
+          value={filteredCalls.length.toString()} 
+          change={isManager ? `${uniqueReps.length} reps` : "This period"} 
+        />
         <StatCard label="Avg Score" value={avgScore.toString()} change="+5 vs last week" positive />
-        <StatCard label="Positive Outcomes" value={positiveOutcomes.toString()} change={`${Math.round(positiveOutcomes / filteredCalls.length * 100)}% rate`} positive />
-        <StatCard label="Best Score" value="94" change="Sarah Chen" positive />
+        <StatCard 
+          label="Positive Outcomes" 
+          value={positiveOutcomes.toString()} 
+          change={`${Math.round(positiveOutcomes / filteredCalls.length * 100)}% rate`} 
+          positive 
+        />
+        <StatCard 
+          label="Best Score" 
+          value={isManager ? "94" : Math.max(...filteredCalls.map(c => c.score)).toString()} 
+          change={isManager ? "Sarah Chen" : "Personal best"} 
+          positive 
+        />
       </div>
 
       {/* Filters */}
@@ -310,17 +337,19 @@ const CallsPage = () => {
           ))}
         </div>
         <div className="flex items-center gap-2 md:gap-3">
-          <Select value={repFilter} onValueChange={setRepFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter by rep" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Reps</SelectItem>
-              {uniqueReps.map(rep => (
-                <SelectItem key={rep} value={rep}>{rep}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isManager && (
+            <Select value={repFilter} onValueChange={setRepFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Filter by rep" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Reps</SelectItem>
+                {uniqueReps.map(rep => (
+                  <SelectItem key={rep} value={rep}>{rep}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <div className="relative flex-1 sm:w-48 md:w-56">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
