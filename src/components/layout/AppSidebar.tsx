@@ -4,7 +4,6 @@ import {
   Phone, 
   Users, 
   BarChart3, 
-  GraduationCap, 
   Settings,
   Plus,
   Bot,
@@ -12,7 +11,8 @@ import {
   Home,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ const navigation = [
   { name: "Calls", href: "/calls", icon: Phone },
   { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "Training", href: "/training", icon: GraduationCap },
+  { name: "Talent Pool", href: "/talent", icon: Briefcase },
   { name: "Team", href: "/team", icon: Users },
 ];
 
