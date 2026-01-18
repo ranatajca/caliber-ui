@@ -5,11 +5,9 @@ import {
   Calendar,
   RefreshCw,
   ChevronRight,
-  Info,
   Phone,
   Target,
-  Headphones,
-  MessageSquare,
+  Mic,
   Zap,
   TrendingUp,
   TrendingDown,
@@ -18,8 +16,9 @@ import {
   AlertTriangle,
   Award,
   BarChart3,
-  Mic,
-  Users
+  Users,
+  Gamepad2,
+  LineChart as LineChartIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,7 +36,12 @@ import {
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
-  Radar
+  Radar,
+  Legend,
+  ScatterChart,
+  Scatter,
+  CartesianGrid,
+  ZAxis,
 } from "recharts";
 import { toast } from "sonner";
 
@@ -53,29 +57,32 @@ interface Rep {
   discoveryRate: number;
   objectionHandling: number;
   color: string;
+  practiceCount?: number;
+  scoreChange?: number;
 }
 
 interface RepDetailPageProps {
   rep: Rep;
+  allReps?: Rep[];
   onBack: () => void;
 }
 
 const getRepPerformanceData = (rep: Rep) => [
-  { month: "Aug", score: Math.max(rep.callScore - 32, 15), roleplay: Math.max(rep.roleplayScore - 28, 12) },
-  { month: "Sep", score: Math.max(rep.callScore - 26, 20), roleplay: Math.max(rep.roleplayScore - 22, 18) },
-  { month: "Oct", score: Math.max(rep.callScore - 19, 28), roleplay: Math.max(rep.roleplayScore - 16, 25) },
-  { month: "Nov", score: Math.max(rep.callScore - 10, 35), roleplay: Math.max(rep.roleplayScore - 8, 32) },
-  { month: "Dec", score: Math.max(rep.callScore - 4, 42), roleplay: Math.max(rep.roleplayScore - 3, 40) },
-  { month: "Jan", score: rep.callScore, roleplay: rep.roleplayScore },
+  { month: "Aug", score: Math.max(rep.callScore - 32, 15), roleplay: Math.max(rep.roleplayScore - 28, 12), practices: 2 },
+  { month: "Sep", score: Math.max(rep.callScore - 26, 20), roleplay: Math.max(rep.roleplayScore - 22, 18), practices: 4 },
+  { month: "Oct", score: Math.max(rep.callScore - 19, 28), roleplay: Math.max(rep.roleplayScore - 16, 25), practices: 5 },
+  { month: "Nov", score: Math.max(rep.callScore - 10, 35), roleplay: Math.max(rep.roleplayScore - 8, 32), practices: 6 },
+  { month: "Dec", score: Math.max(rep.callScore - 4, 42), roleplay: Math.max(rep.roleplayScore - 3, 40), practices: 8 },
+  { month: "Jan", score: rep.callScore, roleplay: rep.roleplayScore, practices: rep.practiceCount || 3 },
 ];
 
-const getRadarData = (rep: Rep) => [
-  { skill: "Discovery", value: rep.discoveryRate, fullMark: 100 },
-  { skill: "Listening", value: Math.max(100 - rep.talkRatio, 30), fullMark: 100 },
-  { skill: "Objections", value: rep.objectionHandling, fullMark: 100 },
-  { skill: "Closing", value: Math.round(rep.callScore * 0.85), fullMark: 100 },
-  { skill: "Rapport", value: Math.round(rep.callScore * 1.02), fullMark: 100 },
-  { skill: "Next Steps", value: Math.round(rep.callScore * 0.92), fullMark: 100 },
+const getRadarData = (rep: Rep, topRep?: Rep) => [
+  { skill: "Discovery", value: rep.discoveryRate, topRep: topRep?.discoveryRate || 91, fullMark: 100 },
+  { skill: "Listening", value: Math.max(100 - rep.talkRatio, 30), topRep: topRep ? Math.max(100 - topRep.talkRatio, 30) : 62, fullMark: 100 },
+  { skill: "Objections", value: rep.objectionHandling, topRep: topRep?.objectionHandling || 82, fullMark: 100 },
+  { skill: "Closing", value: Math.round(rep.callScore * 0.85), topRep: topRep ? Math.round(topRep.callScore * 0.85) : 71, fullMark: 100 },
+  { skill: "Rapport", value: Math.min(Math.round(rep.callScore * 1.02), 100), topRep: topRep ? Math.min(Math.round(topRep.callScore * 1.02), 100) : 86, fullMark: 100 },
+  { skill: "Next Steps", value: Math.round(rep.callScore * 0.92), topRep: topRep ? Math.round(topRep.callScore * 0.92) : 77, fullMark: 100 },
 ];
 
 const getRecentCalls = (rep: Rep) => [
@@ -86,21 +93,10 @@ const getRecentCalls = (rep: Rep) => [
   { id: 5, prospect: "NextGen Corp", duration: "38:55", score: rep.callScore + 2, date: "Jan 3", outcome: "Demo Scheduled" },
 ];
 
-const getObjections = (rep: Rep) => {
-  const baseObjections = [
-    { name: "Budget concerns", count: Math.ceil(rep.calls * 0.25), trend: -8 },
-    { name: "Timing issues", count: Math.ceil(rep.calls * 0.18), trend: 5 },
-    { name: "Need stakeholder buy-in", count: Math.ceil(rep.calls * 0.15), trend: -3 },
-    { name: "Already using competitor", count: Math.ceil(rep.calls * 0.12), trend: 12 },
-    { name: "Need more information", count: Math.ceil(rep.calls * 0.08), trend: -15 },
-  ];
-  return baseObjections.filter(o => o.count > 0);
-};
-
 const getStrengths = (rep: Rep) => {
   const allStrengths = [
     { name: "Pain point discovery", score: rep.discoveryRate, mentions: Math.ceil(rep.calls * 0.6) },
-    { name: "Building rapport", score: Math.round(rep.callScore * 1.02), mentions: Math.ceil(rep.calls * 0.5) },
+    { name: "Building rapport", score: Math.min(Math.round(rep.callScore * 1.02), 100), mentions: Math.ceil(rep.calls * 0.5) },
     { name: "Handling pricing objections", score: rep.objectionHandling, mentions: Math.ceil(rep.calls * 0.35) },
     { name: "Setting next steps", score: Math.round(rep.callScore * 0.92), mentions: Math.ceil(rep.calls * 0.45) },
     { name: "Asking open-ended questions", score: Math.round(rep.discoveryRate * 0.95), mentions: Math.ceil(rep.calls * 0.55) },
@@ -118,18 +114,33 @@ const getWeaknesses = (rep: Rep) => {
   return allWeaknesses.sort((a, b) => b.score - a.score).slice(0, 3);
 };
 
+// Practice vs Performance correlation data
+const getPracticePerformanceData = (allReps: Rep[]) => {
+  return allReps.map(rep => ({
+    name: rep.name,
+    practices: rep.practiceCount || Math.round(Math.random() * 15) + 1,
+    score: rep.callScore,
+    improvement: rep.scoreChange || Math.round(Math.random() * 20) - 5,
+    color: rep.color,
+  }));
+};
+
 const sourceFilters = ["Live Calls", "AI Roleplay"];
 
-const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
+const RepDetailPage = ({ rep, allReps, onBack }: RepDetailPageProps) => {
   const navigate = useNavigate();
   const [sourceFilter, setSourceFilter] = useState("Live Calls");
 
+  // Find top rep for comparison
+  const topRep = allReps?.reduce((top, r) => r.callScore > top.callScore ? r : top, allReps[0]);
+  const isTopRep = topRep?.id === rep.id;
+
   const performanceData = getRepPerformanceData(rep);
-  const radarData = getRadarData(rep);
+  const radarData = getRadarData(rep, topRep);
   const recentCalls = getRecentCalls(rep);
-  const objections = getObjections(rep);
   const strengths = getStrengths(rep);
   const weaknesses = getWeaknesses(rep);
+  const practicePerformanceData = allReps ? getPracticePerformanceData(allReps) : [];
 
   const avgCallDuration = "34:22";
   const improvementRate = Math.round((performanceData[5].score - performanceData[0].score) / performanceData[0].score * 100);
@@ -150,6 +161,26 @@ const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
     return null;
   };
 
+  const ScatterTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+          <p className="font-medium text-sm mb-1">{data.name}</p>
+          <p className="text-sm text-muted-foreground">Practices: {data.practices}</p>
+          <p className="text-sm text-muted-foreground">Score: {data.score}</p>
+          <p className={`text-sm ${data.improvement >= 0 ? "text-success" : "text-destructive"}`}>
+            Improvement: {data.improvement >= 0 ? "+" : ""}{data.improvement}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Calculate gap from top rep
+  const gapFromTop = topRep ? topRep.callScore - rep.callScore : 0;
+
   return (
     <div className="p-4 md:p-6 space-y-6 animate-fade-in">
       {/* Header */}
@@ -166,13 +197,23 @@ const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
               {rep.avatar}
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-display font-bold">{rep.name}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl md:text-3xl font-display font-bold">{rep.name}</h1>
+                {isTopRep && (
+                  <Badge className="bg-amber-500 text-white">👑 Top Rep</Badge>
+                )}
+              </div>
               <p className="text-muted-foreground">{rep.email}</p>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="secondary" className="text-xs">
                   <TrendingUp className="w-3 h-3 mr-1" />
                   +{improvementRate}% improvement
                 </Badge>
+                {!isTopRep && topRep && (
+                  <Badge variant="outline" className="text-xs">
+                    {gapFromTop} pts behind {topRep.name.split(" ")[0]}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -253,11 +294,11 @@ const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 rounded-lg bg-muted">
-                <Clock className="w-4 h-4 text-muted-foreground" />
+                <Gamepad2 className="w-4 h-4 text-muted-foreground" />
               </div>
-              <p className="text-xs text-muted-foreground">Avg Duration</p>
+              <p className="text-xs text-muted-foreground">Practices</p>
             </div>
-            <p className="text-2xl font-bold">{avgCallDuration}</p>
+            <p className="text-2xl font-bold">{rep.practiceCount || 0}</p>
           </CardContent>
         </Card>
       </div>
@@ -306,36 +347,118 @@ const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
           </CardContent>
         </Card>
 
-        {/* Skills Radar */}
+        {/* Skills Radar with Top Rep Comparison */}
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5 text-muted-foreground" />
-              <CardTitle className="text-lg">Skills Profile</CardTitle>
+              <CardTitle className="text-lg">Skills Profile vs Top Rep</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground">Competency breakdown across key areas</p>
+            <p className="text-sm text-muted-foreground">
+              {isTopRep ? "Your skill breakdown" : `Compared to ${topRep?.name || "top performer"}`}
+            </p>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+              <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
                 <PolarGrid stroke="hsl(var(--border))" />
                 <PolarAngleAxis 
                   dataKey="skill" 
                   tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                 />
+                {!isTopRep && (
+                  <Radar
+                    name={topRep?.name || "Top Rep"}
+                    dataKey="topRep"
+                    stroke="hsl(var(--success))"
+                    fill="hsl(var(--success))"
+                    fillOpacity={0.1}
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                  />
+                )}
                 <Radar
-                  name="Skills"
+                  name={rep.name}
                   dataKey="value"
                   stroke={rep.color}
                   fill={rep.color}
                   fillOpacity={0.25}
                   strokeWidth={2}
                 />
+                <Legend />
               </RadarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
+
+      {/* Practice vs Performance Correlation */}
+      {allReps && allReps.length > 1 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <LineChartIcon className="w-5 h-5 text-muted-foreground" />
+              <CardTitle className="text-lg">Practice Volume vs Performance</CardTitle>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Relationship between roleplay sessions and score improvement across team
+            </p>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={280}>
+              <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis 
+                  type="number" 
+                  dataKey="practices" 
+                  name="Practices"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                  label={{ value: 'Practice Sessions', position: 'bottom', fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                />
+                <YAxis 
+                  type="number" 
+                  dataKey="score" 
+                  name="Score"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                  domain={[20, 100]}
+                  label={{ value: 'Call Score', angle: -90, position: 'insideLeft', fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                />
+                <ZAxis type="number" dataKey="improvement" range={[60, 400]} />
+                <Tooltip content={<ScatterTooltip />} />
+                <Scatter 
+                  data={practicePerformanceData} 
+                  fill="hsl(var(--primary))"
+                >
+                  {practicePerformanceData.map((entry, index) => (
+                    <circle
+                      key={index}
+                      r={entry.name === rep.name ? 12 : 8}
+                      fill={entry.name === rep.name ? rep.color : "hsl(var(--muted-foreground))"}
+                      fillOpacity={entry.name === rep.name ? 1 : 0.5}
+                      stroke={entry.name === rep.name ? "hsl(var(--background))" : "none"}
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Scatter>
+              </ScatterChart>
+            </ResponsiveContainer>
+            <div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-border">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="w-4 h-4 rounded-full" style={{ backgroundColor: rep.color }} />
+                <span className="text-muted-foreground">{rep.name} (current)</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="w-3 h-3 rounded-full bg-muted-foreground opacity-50" />
+                <span className="text-muted-foreground">Other team members</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Calls */}
       <Card>
@@ -394,42 +517,7 @@ const RepDetailPage = ({ rep, onBack }: RepDetailPageProps) => {
       </Card>
 
       {/* Bottom Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Objections */}
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-warning" />
-              <CardTitle className="text-lg">Common Objections</CardTitle>
-            </div>
-            <p className="text-sm text-muted-foreground">Most frequent pushback encountered</p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {objections.map((objection, index) => (
-                <div 
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted transition-colors cursor-pointer"
-                  onClick={() => navigate("/calls")}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{objection.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">{objection.count}x</span>
-                    <span className={`text-xs flex items-center ${
-                      objection.trend < 0 ? "text-success" : "text-destructive"
-                    }`}>
-                      {objection.trend < 0 ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
-                      {Math.abs(objection.trend)}%
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Strengths */}
         <Card>
           <CardHeader className="pb-2">
