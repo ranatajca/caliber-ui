@@ -30,15 +30,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
-  Area,
   ComposedChart,
+  Bar,
+  CartesianGrid,
+  Legend,
 } from "recharts";
 import { toast } from "sonner";
 import { useRole } from "@/contexts/RoleContext";
@@ -71,38 +72,8 @@ const mockReps: Rep[] = [
   { id: "8", name: "Derek Thompson", avatar: "DT", email: "derek.t@company.com", callScore: 28, calls: 2, roleplayScore: 24, talkRatio: 74, discoveryRate: 20, objectionHandling: 18, color: "#22C55E", practiceCount: 0, scoreChange: -1 },
 ];
 
-// Team average over time data for different windows
-const teamTrendData = {
-  "7d": [
-    { day: "Mon", teamAvg: 58, topRep: 82 },
-    { day: "Tue", teamAvg: 59, topRep: 83 },
-    { day: "Wed", teamAvg: 57, topRep: 81 },
-    { day: "Thu", teamAvg: 60, topRep: 84 },
-    { day: "Fri", teamAvg: 61, topRep: 85 },
-    { day: "Sat", teamAvg: 58, topRep: 82 },
-    { day: "Sun", teamAvg: 57, topRep: 84 },
-  ],
-  "14d": [
-    { day: "W1 Mon", teamAvg: 55, topRep: 80 },
-    { day: "W1 Wed", teamAvg: 56, topRep: 81 },
-    { day: "W1 Fri", teamAvg: 57, topRep: 82 },
-    { day: "W2 Mon", teamAvg: 58, topRep: 83 },
-    { day: "W2 Wed", teamAvg: 59, topRep: 83 },
-    { day: "W2 Fri", teamAvg: 60, topRep: 84 },
-    { day: "Today", teamAvg: 57, topRep: 84 },
-  ],
-  "30d": [
-    { day: "Week 1", teamAvg: 52, topRep: 78 },
-    { day: "Week 2", teamAvg: 54, topRep: 80 },
-    { day: "Week 3", teamAvg: 56, topRep: 82 },
-    { day: "Week 4", teamAvg: 57, topRep: 84 },
-  ],
-  "90d": [
-    { day: "Jan", teamAvg: 48, topRep: 72 },
-    { day: "Feb", teamAvg: 52, topRep: 76 },
-    { day: "Mar", teamAvg: 57, topRep: 84 },
-  ],
-};
+// Benchmark score from manager-uploaded best sales calls scoring criteria
+const BENCHMARK_SCORE = 92;
 
 const sourceFilters = ["Live Calls", "AI Roleplay"];
 
@@ -152,12 +123,20 @@ const MetricsPage = () => {
   const avgTalkRatio = Math.round(activeReps.reduce((sum, rep) => sum + rep.talkRatio, 0) / activeReps.length);
   const avgDiscoveryRate = Math.round(activeReps.reduce((sum, rep) => sum + rep.discoveryRate, 0) / activeReps.length);
 
-  // Separate reps by above/below team average
-  const aboveAverage = mockReps.filter(r => r.callScore >= avgCallScore).sort((a, b) => b.callScore - a.callScore);
-  const belowAverage = mockReps.filter(r => r.callScore < avgCallScore).sort((a, b) => b.callScore - a.callScore);
+  // Separate reps by above/below benchmark score
+  const aboveBenchmark = mockReps.filter(r => r.callScore >= BENCHMARK_SCORE * 0.8).sort((a, b) => b.callScore - a.callScore);
+  const belowBenchmark = mockReps.filter(r => r.callScore < BENCHMARK_SCORE * 0.8).sort((a, b) => b.callScore - a.callScore);
   const topRep = mockReps.reduce((top, rep) => rep.callScore > top.callScore ? rep : top, mockReps[0]);
 
-  const currentTrendData = teamTrendData[timeWindow];
+  // Chart data for rep comparison with benchmark
+  const repChartData = mockReps
+    .sort((a, b) => b.callScore - a.callScore)
+    .map(rep => ({
+      name: rep.name.split(' ')[0],
+      score: rep.callScore,
+      benchmark: BENCHMARK_SCORE,
+      fill: rep.callScore >= BENCHMARK_SCORE * 0.8 ? 'hsl(var(--success))' : 'hsl(var(--destructive))',
+    }));
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -184,8 +163,8 @@ const MetricsPage = () => {
   };
 
   const getScoreChangeDisplay = (rep: Rep) => {
-    const diff = rep.callScore - avgCallScore;
-    if (diff > 0) return { icon: ArrowUp, color: "text-success", text: `+${diff}` };
+    const diff = rep.callScore - BENCHMARK_SCORE;
+    if (diff >= 0) return { icon: ArrowUp, color: "text-success", text: `+${diff}` };
     if (diff < 0) return { icon: ArrowDown, color: "text-destructive", text: `${diff}` };
     return { icon: Minus, color: "text-muted-foreground", text: "0" };
   };
@@ -284,43 +263,25 @@ const MetricsPage = () => {
         </Card>
       </div>
 
-      {/* Team Average Over Time Chart */}
+      {/* Rep Performance vs Benchmark Chart */}
       <Card>
         <CardHeader className="pb-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
-                Team Score Trend
+                Rep Performance vs Benchmark
                 <Info className="w-4 h-4 text-muted-foreground" />
               </CardTitle>
-              <p className="text-sm text-muted-foreground">Rolling average compared to top performer</p>
-            </div>
-            <div className="flex items-center gap-2">
-              {(["7d", "14d", "30d", "90d"] as const).map((window) => (
-                <Button
-                  key={window}
-                  variant={timeWindow === window ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTimeWindow(window)}
-                  className="text-xs"
-                >
-                  {window === "7d" ? "7D" : window === "14d" ? "14D" : window === "30d" ? "30D" : "90D"}
-                </Button>
-              ))}
+              <p className="text-sm text-muted-foreground">Each rep compared to benchmark score ({BENCHMARK_SCORE}) from top sales calls</p>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
-            <ComposedChart data={currentTrendData}>
-              <defs>
-                <linearGradient id="teamAvgGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
+            <ComposedChart data={repChartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis 
-                dataKey="day" 
+                dataKey="name" 
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
@@ -329,37 +290,33 @@ const MetricsPage = () => {
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
-                domain={[40, 100]}
+                domain={[0, 100]}
               />
               <Tooltip content={<CustomTooltip />} />
-              <ReferenceLine y={avgCallScore} stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5" label={{ value: `Avg: ${avgCallScore}`, position: 'right', fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-              <Area 
-                type="monotone" 
-                dataKey="teamAvg" 
-                name="Team Average"
+              <Legend />
+              <ReferenceLine 
+                y={BENCHMARK_SCORE} 
                 stroke="hsl(var(--primary))" 
-                fill="url(#teamAvgGradient)" 
                 strokeWidth={2}
+                strokeDasharray="5 5" 
+                label={{ value: `Benchmark: ${BENCHMARK_SCORE}`, position: 'right', fill: 'hsl(var(--primary))', fontSize: 11, fontWeight: 600 }} 
               />
-              <Line 
-                type="monotone" 
-                dataKey="topRep" 
-                name="Top Rep"
-                stroke="hsl(var(--success))" 
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={false}
+              <Bar 
+                dataKey="score" 
+                name="Rep Score"
+                radius={[4, 4, 0, 0]}
+                fill="hsl(var(--primary))"
               />
             </ComposedChart>
           </ResponsiveContainer>
           <div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-border">
             <div className="flex items-center gap-2 text-sm">
-              <span className="w-3 h-3 rounded-full bg-primary" />
-              <span className="text-muted-foreground">Team Average</span>
+              <span className="w-3 h-3 rounded-sm bg-primary" />
+              <span className="text-muted-foreground">Rep Score</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <span className="w-3 h-1 bg-success" style={{ borderStyle: 'dashed' }} />
-              <span className="text-muted-foreground">Top Rep ({topRep.name})</span>
+              <span className="w-6 h-0.5 bg-primary" style={{ borderStyle: 'dashed' }} />
+              <span className="text-muted-foreground">Benchmark from Best Calls ({BENCHMARK_SCORE})</span>
             </div>
           </div>
         </CardContent>
@@ -367,19 +324,19 @@ const MetricsPage = () => {
 
       {/* Per-Rep Performance Comparison */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Above Average */}
+        {/* Meeting Benchmark */}
         <Card className="border-success/30">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-success" />
-              Above Team Average ({aboveAverage.length})
+              Meeting Benchmark ({aboveBenchmark.length})
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Reps scoring above the {avgCallScore} team average
+              Reps at 80%+ of benchmark score ({Math.round(BENCHMARK_SCORE * 0.8)}+)
             </p>
           </CardHeader>
           <CardContent className="space-y-3">
-            {aboveAverage.map((rep, index) => {
+            {aboveBenchmark.map((rep, index) => {
               const scoreDisplay = getScoreChangeDisplay(rep);
               const Icon = scoreDisplay.icon;
               return (
@@ -409,7 +366,7 @@ const MetricsPage = () => {
                     <p className="font-bold text-success">{rep.callScore}</p>
                     <p className={`text-xs flex items-center justify-end gap-0.5 ${scoreDisplay.color}`}>
                       <Icon className="w-3 h-3" />
-                      {scoreDisplay.text} vs avg
+                      {scoreDisplay.text} vs benchmark
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -419,19 +376,19 @@ const MetricsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Below Average */}
+        {/* Below Benchmark */}
         <Card className="border-destructive/30">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <TrendingDown className="w-5 h-5 text-destructive" />
-              Below Team Average ({belowAverage.length})
+              Below Benchmark ({belowBenchmark.length})
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Reps scoring below the {avgCallScore} team average
+              Reps scoring below 80% of benchmark ({Math.round(BENCHMARK_SCORE * 0.8)})
             </p>
           </CardHeader>
           <CardContent className="space-y-3">
-            {belowAverage.map((rep) => {
+            {belowBenchmark.map((rep) => {
               const scoreDisplay = getScoreChangeDisplay(rep);
               const Icon = scoreDisplay.icon;
               return (
@@ -454,7 +411,7 @@ const MetricsPage = () => {
                     <p className="font-bold text-destructive">{rep.callScore}</p>
                     <p className={`text-xs flex items-center justify-end gap-0.5 ${scoreDisplay.color}`}>
                       <Icon className="w-3 h-3" />
-                      {scoreDisplay.text} vs avg
+                      {scoreDisplay.text} vs benchmark
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -480,7 +437,7 @@ const MetricsPage = () => {
                   <th className="text-left py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">Representative</th>
                   <th className="text-center py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">Calls</th>
                   <th className="text-center py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">Score</th>
-                  <th className="text-center py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">vs Avg</th>
+                  <th className="text-center py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">vs Benchmark</th>
                   <th className="text-center py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">Practices</th>
                   <th className="text-center py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">Trend</th>
                   <th className="text-center py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">Action</th>
@@ -488,7 +445,7 @@ const MetricsPage = () => {
               </thead>
               <tbody>
                 {mockReps.sort((a, b) => b.callScore - a.callScore).map((rep, index) => {
-                  const diff = rep.callScore - avgCallScore;
+                  const diff = rep.callScore - BENCHMARK_SCORE;
                   return (
                     <tr 
                       key={rep.id} 
