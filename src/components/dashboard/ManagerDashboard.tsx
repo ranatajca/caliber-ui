@@ -7,13 +7,13 @@ import {
   Target, 
   Phone, 
   ChevronRight, 
-  AlertTriangle,
   Award,
   BarChart3,
   FileText,
   ArrowDownRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
@@ -201,53 +201,16 @@ const ManagerDashboard = () => {
         </Card>
       )}
 
-      {/* Attention Needed & Top Performers */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* Needs Attention */}
-        <Card className="border-warning/30">
-          <CardHeader className="pb-2 md:pb-4">
-            <CardTitle className="text-base md:text-lg flex items-center gap-2 text-warning">
-              <AlertTriangle className="w-5 h-5" />
-              Needs Attention ({needsAttention.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {needsAttention.slice(0, 4).map((member) => (
-              <div 
-                key={member.id}
-                className="flex items-center gap-3 p-3 rounded-xl bg-warning/5 border border-warning/20 cursor-pointer hover:bg-warning/10 transition-colors"
-                onClick={() => navigate(`/team?member=${member.id}`)}
-              >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-warning/30 to-orange-500/30 flex items-center justify-center font-semibold text-warning text-sm">
-                  {member.avatar}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{member.name}</p>
-                  <p className="text-xs text-muted-foreground">{member.role} • Score: {member.score}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {member.trend === "down" && <TrendingDown className="w-4 h-4 text-destructive" />}
-                  <Button size="sm" variant="outline" className="h-7 text-xs">
-                    Review
-                  </Button>
-                </div>
-              </div>
-            ))}
-            {needsAttention.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">All reps performing well! 🎉</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Top Performers */}
-        <Card className="border-success/30">
-          <CardHeader className="pb-2 md:pb-4">
-            <CardTitle className="text-base md:text-lg flex items-center gap-2 text-success">
-              <Award className="w-5 h-5" />
-              Top Performers ({topPerformers.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+      {/* Top Performers */}
+      <Card className="border-success/30">
+        <CardHeader className="pb-2 md:pb-4">
+          <CardTitle className="text-base md:text-lg flex items-center gap-2 text-success">
+            <Award className="w-5 h-5" />
+            Top Performers ({topPerformers.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {topPerformers.slice(0, 4).map((member, index) => (
               <div 
                 key={member.id}
@@ -274,9 +237,9 @@ const ManagerDashboard = () => {
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Team Performance & Pending Reviews */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
@@ -288,35 +251,72 @@ const ManagerDashboard = () => {
               Leaderboard <ChevronRight className="w-4 h-4" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {teamMembers.sort((a, b) => b.score - a.score).map((member) => (
-              <div key={member.id} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-semibold text-primary text-xs">
-                        {member.avatar}
+          <CardContent className="space-y-6">
+            {/* Rep Performance Chart */}
+            <div className="h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={teamMembers.sort((a, b) => b.score - a.score)} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="avatar" 
+                    tick={{ fontSize: 11 }} 
+                    className="text-muted-foreground"
+                  />
+                  <YAxis 
+                    domain={[50, 100]} 
+                    tick={{ fontSize: 11 }} 
+                    className="text-muted-foreground"
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--background))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                    formatter={(value: number, name: string) => [value, name === 'score' ? 'Current Score' : 'Calls']}
+                    labelFormatter={(label) => {
+                      const member = teamMembers.find(m => m.avatar === label);
+                      return member?.name || label;
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="score" name="Score" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Line type="monotone" dataKey="avgScore" name="Avg Score" stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5" strokeWidth={2} dot={false} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Rep List */}
+            <div className="space-y-4">
+              {teamMembers.sort((a, b) => b.score - a.score).map((member) => (
+                <div key={member.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-semibold text-primary text-xs">
+                          {member.avatar}
+                        </div>
+                        <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-background ${
+                          member.status === "online" ? "bg-success" : member.status === "away" ? "bg-warning" : "bg-muted"
+                        }`} />
                       </div>
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-background ${
-                        member.status === "online" ? "bg-success" : member.status === "away" ? "bg-warning" : "bg-muted"
-                      }`} />
+                      <div>
+                        <p className="font-medium text-sm">{member.name}</p>
+                        <p className="text-xs text-muted-foreground">{member.calls} calls • {member.role}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">{member.name}</p>
-                      <p className="text-xs text-muted-foreground">{member.calls} calls • {member.role}</p>
+                    <div className="flex items-center gap-2">
+                      <span className={`font-bold text-sm ${member.score >= 80 ? "text-success" : member.score >= 70 ? "text-warning" : "text-destructive"}`}>
+                        {member.score}
+                      </span>
+                      {member.trend === "up" && <TrendingUp className="w-3.5 h-3.5 text-success" />}
+                      {member.trend === "down" && <TrendingDown className="w-3.5 h-3.5 text-destructive" />}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`font-bold text-sm ${member.score >= 80 ? "text-success" : member.score >= 70 ? "text-warning" : "text-destructive"}`}>
-                      {member.score}
-                    </span>
-                    {member.trend === "up" && <TrendingUp className="w-3.5 h-3.5 text-success" />}
-                    {member.trend === "down" && <TrendingDown className="w-3.5 h-3.5 text-destructive" />}
-                  </div>
+                  <Progress value={member.score} className="h-2" />
                 </div>
-                <Progress value={member.score} className="h-2" />
-              </div>
-            ))}
+              ))}
+            </div>
           </CardContent>
         </Card>
 
