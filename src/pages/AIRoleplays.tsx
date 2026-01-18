@@ -16,7 +16,8 @@ import {
   Users,
   BookOpen,
   TrendingUp,
-  Award
+  Award,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,8 +57,52 @@ interface ScoringTemplate {
   categories: string[];
 }
 
-// Pre-created library roleplays
-const libraryRoleplays: RoleplayScenario[] = [
+// Scenario practice - focused skill drills
+const scenarioPractice = [
+  {
+    id: "scenario-1",
+    name: "Price Objection Drill",
+    skill: "Objection Handling",
+    description: "Quick 5-minute drill on reframing value when price comes up",
+    estimatedTime: 5,
+    difficulty: "medium" as const,
+    completedCount: 8,
+    averageScore: 76,
+  },
+  {
+    id: "scenario-2",
+    name: "Discovery Question Sprint",
+    skill: "Discovery",
+    description: "Practice asking deeper questions to uncover pain points",
+    estimatedTime: 7,
+    difficulty: "easy" as const,
+    completedCount: 12,
+    averageScore: 82,
+  },
+  {
+    id: "scenario-3",
+    name: "Gatekeeper Bypass",
+    skill: "Cold Calling",
+    description: "Get past the executive assistant with confidence",
+    estimatedTime: 5,
+    difficulty: "hard" as const,
+    completedCount: 3,
+    averageScore: 68,
+  },
+  {
+    id: "scenario-4",
+    name: "Trial Close Practice",
+    skill: "Closing",
+    description: "Master micro-commitments throughout the conversation",
+    estimatedTime: 6,
+    difficulty: "medium" as const,
+    completedCount: 5,
+    averageScore: 71,
+  },
+];
+
+// Full call roleplays - complete simulated sales conversations
+const fullCallRoleplays: RoleplayScenario[] = [
   {
     id: "lib-1",
     name: "Cold Call: Enterprise SaaS",
@@ -117,20 +162,6 @@ const libraryRoleplays: RoleplayScenario[] = [
     averageScore: 68,
     scoringTemplate: "Closing Mastery",
     tags: ["closing", "urgency", "implementation"],
-  },
-  {
-    id: "lib-5",
-    name: "Cold Call: Gatekeeper",
-    buyerName: "Reception",
-    buyerRole: "Executive Assistant",
-    buyerCompany: "Fortune 500 Co",
-    callType: "cold",
-    difficulty: "medium",
-    description: "Get past the gatekeeper to reach the decision maker. Practice rapport building and professional persistence.",
-    estimatedTime: 5,
-    completedCount: 0,
-    scoringTemplate: "Standard Cold Call",
-    tags: ["gatekeeper", "persistence", "rapport"],
   },
 ];
 
@@ -230,7 +261,7 @@ const AIRoleplays = () => {
     { id: "closing", label: "Closing", icon: CheckCircle },
   ];
 
-  const filteredLibraryRoleplays = libraryRoleplays.filter((rp) => {
+  const filteredFullCallRoleplays = fullCallRoleplays.filter((rp) => {
     if (selectedCallType !== "all" && rp.callType !== selectedCallType) return false;
     if (searchQuery && !rp.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
@@ -436,11 +467,71 @@ const AIRoleplays = () => {
         </div>
       )}
 
-      {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-2 mb-4 sm:mb-0">
-          <BookOpen className="w-5 h-5 text-muted-foreground" />
-          <h2 className="text-lg font-display font-semibold">Practice Library</h2>
+      {/* ==================== SCENARIO PRACTICE ==================== */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-accent/10">
+            <Zap className="w-5 h-5 text-accent" />
+          </div>
+          <div>
+            <h2 className="text-lg font-display font-semibold">Scenario Practice</h2>
+            <p className="text-sm text-muted-foreground">Quick skill drills • 5-7 min each</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {scenarioPractice.map((scenario) => (
+            <Card 
+              key={scenario.id}
+              className="group hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer border-l-4 border-l-accent"
+              onClick={() => navigate(`/roleplays/${scenario.id}/start`)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <Badge variant="outline" className="text-xs bg-accent/10 text-accent-foreground border-accent/20">
+                    {scenario.skill}
+                  </Badge>
+                  <Badge variant="outline" className={cn("text-[10px]", getDifficultyColor(scenario.difficulty))}>
+                    {scenario.difficulty}
+                  </Badge>
+                </div>
+                
+                <h3 className="font-semibold text-sm mb-1">{scenario.name}</h3>
+                <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{scenario.description}</p>
+                
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {scenario.estimatedTime} min
+                  </span>
+                  {scenario.completedCount > 0 && (
+                    <span className="flex items-center gap-1">
+                      <Star className="w-3 h-3 text-warning" />
+                      {scenario.averageScore}
+                    </span>
+                  )}
+                </div>
+                
+                <Button size="sm" variant="outline" className="w-full gap-2 group-hover:bg-accent group-hover:text-accent-foreground">
+                  <Target className="w-3 h-3" />
+                  Practice Skill
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* ==================== FULL CALL ROLEPLAY ==================== */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Phone className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-lg font-display font-semibold">Full Call Roleplay</h2>
+            <p className="text-sm text-muted-foreground">Complete sales conversations • 8-15 min each</p>
+          </div>
         </div>
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -471,7 +562,7 @@ const AIRoleplays = () => {
 
       {/* Library Roleplays Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredLibraryRoleplays.map((roleplay, index) => {
+        {filteredFullCallRoleplays.map((roleplay, index) => {
           const CallTypeIcon = getCallTypeIcon(roleplay.callType);
           
           return (
@@ -573,7 +664,7 @@ const AIRoleplays = () => {
       </div>
 
       {/* Empty State */}
-      {filteredLibraryRoleplays.length === 0 && (
+      {filteredFullCallRoleplays.length === 0 && (
         <div className="text-center py-12">
           <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">No roleplays found</h3>
@@ -587,7 +678,7 @@ const AIRoleplays = () => {
       <div className="mt-8 p-4 bg-muted/30 rounded-xl">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-primary">{libraryRoleplays.reduce((acc, rp) => acc + rp.completedCount, 0)}</p>
+            <p className="text-2xl font-bold text-primary">{fullCallRoleplays.reduce((acc, rp) => acc + rp.completedCount, 0) + scenarioPractice.reduce((acc, sp) => acc + sp.completedCount, 0)}</p>
             <p className="text-xs text-muted-foreground">Total Practices</p>
           </div>
           <div className="text-center">

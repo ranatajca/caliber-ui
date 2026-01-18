@@ -195,18 +195,32 @@ const RepDashboard = () => {
                   {weakness.insight}
                 </p>
 
-                {/* CTA */}
-                <Button 
-                  className="w-full gap-2 group-hover:bg-primary/90" 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/roleplays/${weakness.roleplayId}/start`);
-                  }}
-                >
-                  <Play className="w-4 h-4" />
-                  Practice Now
-                </Button>
+                {/* CTAs */}
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    className="flex-1 gap-2 text-xs" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/roleplays?focus=${weakness.practiceType}`);
+                    }}
+                  >
+                    <Target className="w-3 h-3" />
+                    Practice Skill
+                  </Button>
+                  <Button 
+                    className="flex-1 gap-2 text-xs group-hover:bg-primary/90" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/roleplays/${weakness.roleplayId}/start`);
+                    }}
+                  >
+                    <Play className="w-3 h-3" />
+                    Full Roleplay
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
