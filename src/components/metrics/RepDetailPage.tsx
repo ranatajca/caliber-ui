@@ -393,71 +393,101 @@ const RepDetailPage = ({ rep, allReps, onBack }: RepDetailPageProps) => {
         </Card>
       </div>
 
-      {/* Practice vs Performance Correlation */}
+      {/* Practice Impact Across Team */}
       {allReps && allReps.length > 1 && (
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <LineChartIcon className="w-5 h-5 text-muted-foreground" />
-              <CardTitle className="text-lg">Practice Volume vs Performance</CardTitle>
+              <CardTitle className="text-lg">Practice Impact Across Team</CardTitle>
             </div>
             <p className="text-sm text-muted-foreground">
-              Relationship between roleplay sessions and score improvement across team
+              Comparing practice volume and resulting call scores
             </p>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis 
-                  type="number" 
-                  dataKey="practices" 
-                  name="Practices"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  label={{ value: 'Practice Sessions', position: 'bottom', fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                />
-                <YAxis 
-                  type="number" 
-                  dataKey="score" 
-                  name="Score"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  domain={[20, 100]}
-                  label={{ value: 'Call Score', angle: -90, position: 'insideLeft', fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                />
-                <ZAxis type="number" dataKey="improvement" range={[60, 400]} />
-                <Tooltip content={<ScatterTooltip />} />
-                <Scatter 
-                  data={practicePerformanceData.filter(entry => entry.name !== rep.name)} 
-                  name="Other team members"
-                  fill="hsl(var(--muted-foreground))"
-                  fillOpacity={0.5}
-                />
-                <Scatter 
-                  data={practicePerformanceData.filter(entry => entry.name === rep.name)} 
-                  name={`${rep.name} (current)`}
-                  fill={rep.color}
-                >
-                  {practicePerformanceData
-                    .filter(entry => entry.name === rep.name)
-                    .map((entry, index) => (
-                      <Cell key={index} fill={rep.color} />
-                    ))}
-                </Scatter>
-                <Legend />
-              </ScatterChart>
-            </ResponsiveContainer>
-            <div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-border">
+            <div className="space-y-3">
+              {practicePerformanceData
+                .sort((a, b) => b.score - a.score)
+                .map((entry, index) => {
+                  const isCurrentRep = entry.name === rep.name;
+                  const maxPractices = Math.max(...practicePerformanceData.map(d => d.practices));
+                  const practicePercent = (entry.practices / maxPractices) * 100;
+                  
+                  return (
+                    <div 
+                      key={entry.name}
+                      className={`p-3 rounded-xl border transition-all ${
+                        isCurrentRep 
+                          ? 'bg-primary/5 border-primary/30 ring-1 ring-primary/20' 
+                          : 'bg-muted/30 border-border hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <span className={`text-sm font-medium w-5 ${isCurrentRep ? 'text-primary' : 'text-muted-foreground'}`}>
+                            #{index + 1}
+                          </span>
+                          <div 
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+                            style={{ backgroundColor: entry.color }}
+                          >
+                            {entry.name.split(' ').map(n => n[0]).join('')}
+                          </div>
+                          <div>
+                            <p className={`font-medium text-sm ${isCurrentRep ? 'text-primary' : ''}`}>
+                              {entry.name} {isCurrentRep && <span className="text-xs">(viewing)</span>}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {entry.practices} practice sessions
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`text-lg font-bold ${isCurrentRep ? 'text-primary' : ''}`}>{entry.score}</p>
+                          <p className={`text-xs ${entry.improvement >= 0 ? 'text-success' : 'text-destructive'}`}>
+                            {entry.improvement >= 0 ? '+' : ''}{entry.improvement} pts
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground w-16">Practice</span>
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full rounded-full transition-all"
+                            style={{ 
+                              width: `${practicePercent}%`,
+                              backgroundColor: isCurrentRep ? 'hsl(var(--primary))' : entry.color,
+                              opacity: isCurrentRep ? 1 : 0.6
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-muted-foreground w-16">Score</span>
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full rounded-full transition-all"
+                            style={{ 
+                              width: `${entry.score}%`,
+                              backgroundColor: 'hsl(var(--success))',
+                              opacity: isCurrentRep ? 1 : 0.5
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+            <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-border">
               <div className="flex items-center gap-2 text-sm">
-                <span className="w-4 h-4 rounded-full" style={{ backgroundColor: rep.color }} />
-                <span className="text-muted-foreground">{rep.name} (current)</span>
+                <span className="w-3 h-3 rounded-full bg-primary" />
+                <span className="text-muted-foreground">Practice Volume</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <span className="w-3 h-3 rounded-full bg-muted-foreground opacity-50" />
-                <span className="text-muted-foreground">Other team members</span>
+                <span className="w-3 h-3 rounded-full bg-success" />
+                <span className="text-muted-foreground">Call Score</span>
               </div>
             </div>
           </CardContent>
