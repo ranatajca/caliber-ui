@@ -128,15 +128,19 @@ const MetricsPage = () => {
   const belowBenchmark = mockReps.filter(r => r.callScore < BENCHMARK_SCORE * 0.8).sort((a, b) => b.callScore - a.callScore);
   const topRep = mockReps.reduce((top, rep) => rep.callScore > top.callScore ? rep : top, mockReps[0]);
 
-  // Chart data for rep comparison with benchmark
-  const repChartData = mockReps
-    .sort((a, b) => b.callScore - a.callScore)
-    .map(rep => ({
-      name: rep.name.split(' ')[0],
-      score: rep.callScore,
-      benchmark: BENCHMARK_SCORE,
-      fill: rep.callScore >= BENCHMARK_SCORE * 0.8 ? 'hsl(var(--success))' : 'hsl(var(--destructive))',
-    }));
+  // Generate race chart data - simulating weekly progress over time
+  const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'];
+  const raceChartData = weeks.map((week, weekIndex) => {
+    const dataPoint: Record<string, string | number> = { week, benchmark: BENCHMARK_SCORE };
+    mockReps.forEach(rep => {
+      // Simulate progression: start lower and progress toward current score
+      const startScore = Math.max(20, rep.callScore - 25 + Math.random() * 10);
+      const progress = weekIndex / (weeks.length - 1);
+      const score = Math.round(startScore + (rep.callScore - startScore) * progress + (Math.random() * 6 - 3));
+      dataPoint[rep.id] = Math.min(100, Math.max(0, score));
+    });
+    return dataPoint;
+  });
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -263,25 +267,25 @@ const MetricsPage = () => {
         </Card>
       </div>
 
-      {/* Rep Performance vs Benchmark Chart */}
+      {/* Rep Performance Race Chart */}
       <Card>
         <CardHeader className="pb-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
-                Rep Performance vs Benchmark
+                🏁 Performance Race to Benchmark
                 <Info className="w-4 h-4 text-muted-foreground" />
               </CardTitle>
-              <p className="text-sm text-muted-foreground">Each rep compared to benchmark score ({BENCHMARK_SCORE}) from top sales calls</p>
+              <p className="text-sm text-muted-foreground">All reps racing toward the benchmark score ({BENCHMARK_SCORE}) from top sales calls</p>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
-            <ComposedChart data={repChartData}>
+          <ResponsiveContainer width="100%" height={320}>
+            <ComposedChart data={raceChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis 
-                dataKey="name" 
+                dataKey="week" 
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
@@ -293,30 +297,37 @@ const MetricsPage = () => {
                 domain={[0, 100]}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
               <ReferenceLine 
                 y={BENCHMARK_SCORE} 
-                stroke="hsl(var(--primary))" 
-                strokeWidth={2}
-                strokeDasharray="5 5" 
-                label={{ value: `Benchmark: ${BENCHMARK_SCORE}`, position: 'right', fill: 'hsl(var(--primary))', fontSize: 11, fontWeight: 600 }} 
+                stroke="hsl(var(--warning))" 
+                strokeWidth={3}
+                strokeDasharray="8 4" 
+                label={{ value: `🏆 Benchmark: ${BENCHMARK_SCORE}`, position: 'insideTopRight', fill: 'hsl(var(--warning))', fontSize: 12, fontWeight: 700 }} 
               />
-              <Bar 
-                dataKey="score" 
-                name="Rep Score"
-                radius={[4, 4, 0, 0]}
-                fill="hsl(var(--primary))"
-              />
+              {mockReps.map((rep) => (
+                <Line
+                  key={rep.id}
+                  type="monotone"
+                  dataKey={rep.id}
+                  name={rep.name}
+                  stroke={rep.color}
+                  strokeWidth={2.5}
+                  dot={{ fill: rep.color, strokeWidth: 0, r: 4 }}
+                  activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
+                />
+              ))}
             </ComposedChart>
           </ResponsiveContainer>
-          <div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-border">
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-4 pt-3 border-t border-border">
+            {mockReps.slice(0, 6).map((rep) => (
+              <div key={rep.id} className="flex items-center gap-2 text-sm">
+                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: rep.color }} />
+                <span className="text-muted-foreground">{rep.name.split(' ')[0]}</span>
+              </div>
+            ))}
             <div className="flex items-center gap-2 text-sm">
-              <span className="w-3 h-3 rounded-sm bg-primary" />
-              <span className="text-muted-foreground">Rep Score</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="w-6 h-0.5 bg-primary" style={{ borderStyle: 'dashed' }} />
-              <span className="text-muted-foreground">Benchmark from Best Calls ({BENCHMARK_SCORE})</span>
+              <span className="w-6 border-t-2 border-dashed border-warning" />
+              <span className="text-muted-foreground font-medium">Benchmark ({BENCHMARK_SCORE})</span>
             </div>
           </div>
         </CardContent>
