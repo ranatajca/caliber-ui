@@ -21,7 +21,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { Line, XAxis, YAxis, ResponsiveContainer, Area, ComposedChart } from "recharts";
 
 const RepDashboard = () => {
   const navigate = useNavigate();
@@ -100,7 +100,7 @@ const RepDashboard = () => {
 
   const chartConfig = {
     score: { label: "Your Score", color: "hsl(var(--primary))" },
-    topRep: { label: "Top Rep", color: "hsl(var(--accent))" },
+    topRep: { label: "Top Rep", color: "hsl(170 60% 40%)" },
   };
 
   const getTrendIcon = (trend: number) => {
@@ -260,7 +260,7 @@ const RepDashboard = () => {
 
             {/* Chart */}
             <ChartContainer config={chartConfig} className="h-[180px] w-full">
-              <AreaChart data={scoreTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <ComposedChart data={scoreTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="fillScore" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
@@ -276,16 +276,18 @@ const RepDashboard = () => {
                   stroke="hsl(var(--primary))"
                   strokeWidth={2}
                   fill="url(#fillScore)"
+                  name="Your Score"
                 />
                 <Line
                   type="monotone"
                   dataKey="topRep"
-                  stroke="hsl(var(--accent))"
+                  stroke="hsl(170 60% 40%)"
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   dot={false}
+                  name="Top Rep"
                 />
-              </AreaChart>
+              </ComposedChart>
             </ChartContainer>
           </CardContent>
         </Card>
