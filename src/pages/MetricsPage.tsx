@@ -128,14 +128,25 @@ const MetricsPage = () => {
   const belowBenchmark = mockReps.filter(r => r.callScore < BENCHMARK_SCORE * 0.8).sort((a, b) => b.callScore - a.callScore);
   const topRep = mockReps.reduce((top, rep) => rep.callScore > top.callScore ? rep : top, mockReps[0]);
 
-  // Generate race chart data - simulating weekly progress over time
-  const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'];
-  const raceChartData = weeks.map((week, weekIndex) => {
-    const dataPoint: Record<string, string | number> = { week, benchmark: BENCHMARK_SCORE };
+  // Generate race chart data - showing progress over dates
+  const generateDates = () => {
+    const dates = [];
+    const today = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i * 7);
+      dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    }
+    return dates;
+  };
+  const dates = generateDates();
+  
+  const raceChartData = dates.map((date, dateIndex) => {
+    const dataPoint: Record<string, string | number> = { date, benchmark: BENCHMARK_SCORE };
     mockReps.forEach(rep => {
       // Simulate progression: start lower and progress toward current score
       const startScore = Math.max(20, rep.callScore - 25 + Math.random() * 10);
-      const progress = weekIndex / (weeks.length - 1);
+      const progress = dateIndex / (dates.length - 1);
       const score = Math.round(startScore + (rep.callScore - startScore) * progress + (Math.random() * 6 - 3));
       dataPoint[rep.id] = Math.min(100, Math.max(0, score));
     });
@@ -285,7 +296,7 @@ const MetricsPage = () => {
             <ComposedChart data={raceChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis 
-                dataKey="week" 
+                dataKey="date" 
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
