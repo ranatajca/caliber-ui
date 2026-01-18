@@ -42,6 +42,7 @@ import {
   Scatter,
   CartesianGrid,
   ZAxis,
+  Cell,
 } from "recharts";
 import { toast } from "sonner";
 
@@ -430,20 +431,23 @@ const RepDetailPage = ({ rep, allReps, onBack }: RepDetailPageProps) => {
                 <ZAxis type="number" dataKey="improvement" range={[60, 400]} />
                 <Tooltip content={<ScatterTooltip />} />
                 <Scatter 
-                  data={practicePerformanceData} 
-                  fill="hsl(var(--primary))"
+                  data={practicePerformanceData.filter(entry => entry.name !== rep.name)} 
+                  name="Other team members"
+                  fill="hsl(var(--muted-foreground))"
+                  fillOpacity={0.5}
+                />
+                <Scatter 
+                  data={practicePerformanceData.filter(entry => entry.name === rep.name)} 
+                  name={`${rep.name} (current)`}
+                  fill={rep.color}
                 >
-                  {practicePerformanceData.map((entry, index) => (
-                    <circle
-                      key={index}
-                      r={entry.name === rep.name ? 12 : 8}
-                      fill={entry.name === rep.name ? rep.color : "hsl(var(--muted-foreground))"}
-                      fillOpacity={entry.name === rep.name ? 1 : 0.5}
-                      stroke={entry.name === rep.name ? "hsl(var(--background))" : "none"}
-                      strokeWidth={2}
-                    />
-                  ))}
+                  {practicePerformanceData
+                    .filter(entry => entry.name === rep.name)
+                    .map((entry, index) => (
+                      <Cell key={index} fill={rep.color} />
+                    ))}
                 </Scatter>
+                <Legend />
               </ScatterChart>
             </ResponsiveContainer>
             <div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-border">
