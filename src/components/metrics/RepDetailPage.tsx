@@ -38,11 +38,9 @@ import {
   PolarAngleAxis,
   Radar,
   Legend,
-  ScatterChart,
-  Scatter,
   CartesianGrid,
-  ZAxis,
-  Cell,
+  Bar,
+  BarChart,
 } from "recharts";
 import { toast } from "sonner";
 
@@ -393,7 +391,7 @@ const RepDetailPage = ({ rep, allReps, onBack }: RepDetailPageProps) => {
         </Card>
       </div>
 
-      {/* Practice Impact Across Team */}
+      {/* Practice Impact - Dot Plot */}
       {allReps && allReps.length > 1 && (
         <Card>
           <CardHeader className="pb-2">
@@ -402,91 +400,107 @@ const RepDetailPage = ({ rep, allReps, onBack }: RepDetailPageProps) => {
               <CardTitle className="text-lg">Practice Impact Across Team</CardTitle>
             </div>
             <p className="text-sm text-muted-foreground">
-              Comparing practice volume and resulting call scores
+              Practice sessions (bars) vs call score (dots) per rep
             </p>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {practicePerformanceData
-                .sort((a, b) => b.score - a.score)
-                .map((entry, index) => {
-                  const isCurrentRep = entry.name === rep.name;
-                  const maxPractices = Math.max(...practicePerformanceData.map(d => d.practices));
-                  const practicePercent = (entry.practices / maxPractices) * 100;
-                  
-                  return (
-                    <div 
-                      key={entry.name}
-                      className={`p-3 rounded-xl border transition-all ${
-                        isCurrentRep 
-                          ? 'bg-primary/5 border-primary/30 ring-1 ring-primary/20' 
-                          : 'bg-muted/30 border-border hover:bg-muted/50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <span className={`text-sm font-medium w-5 ${isCurrentRep ? 'text-primary' : 'text-muted-foreground'}`}>
-                            #{index + 1}
-                          </span>
-                          <div 
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold"
-                            style={{ backgroundColor: entry.color }}
-                          >
-                            {entry.name.split(' ').map(n => n[0]).join('')}
-                          </div>
-                          <div>
-                            <p className={`font-medium text-sm ${isCurrentRep ? 'text-primary' : ''}`}>
-                              {entry.name} {isCurrentRep && <span className="text-xs">(viewing)</span>}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {entry.practices} practice sessions
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className={`text-lg font-bold ${isCurrentRep ? 'text-primary' : ''}`}>{entry.score}</p>
-                          <p className={`text-xs ${entry.improvement >= 0 ? 'text-success' : 'text-destructive'}`}>
-                            {entry.improvement >= 0 ? '+' : ''}{entry.improvement} pts
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart
+                data={practicePerformanceData.sort((a, b) => b.practices - a.practices)}
+                layout="vertical"
+                margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                <XAxis 
+                  type="number" 
+                  domain={[0, 100]}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                />
+                <YAxis 
+                  type="category"
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={({ x, y, payload }) => {
+                    const entry = practicePerformanceData.find(d => d.name === payload.value);
+                    const isCurrentRep = payload.value === rep.name;
+                    return (
+                      <g transform={`translate(${x},${y})`}>
+                        <circle
+                          cx={-12}
+                          cy={0}
+                          r={10}
+                          fill={entry?.color || 'hsl(var(--muted))'}
+                        />
+                        <text
+                          x={-12}
+                          y={4}
+                          textAnchor="middle"
+                          fill="#fff"
+                          fontSize={8}
+                          fontWeight={600}
+                        >
+                          {payload.value.split(' ').map((n: string) => n[0]).join('')}
+                        </text>
+                        {isCurrentRep && (
+                          <circle
+                            cx={-12}
+                            cy={0}
+                            r={13}
+                            fill="none"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth={2}
+                          />
+                        )}
+                      </g>
+                    );
+                  }}
+                  width={30}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+                          <p className="font-medium text-sm mb-1">{data.name}</p>
+                          <p className="text-sm text-muted-foreground">Practices: {data.practices}</p>
+                          <p className="text-sm text-muted-foreground">Score: {data.score}</p>
+                          <p className={`text-sm ${data.improvement >= 0 ? 'text-success' : 'text-destructive'}`}>
+                            Change: {data.improvement >= 0 ? '+' : ''}{data.improvement}
                           </p>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground w-16">Practice</span>
-                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className="h-full rounded-full transition-all"
-                            style={{ 
-                              width: `${practicePercent}%`,
-                              backgroundColor: isCurrentRep ? 'hsl(var(--primary))' : entry.color,
-                              opacity: isCurrentRep ? 1 : 0.6
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-muted-foreground w-16">Score</span>
-                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className="h-full rounded-full transition-all"
-                            style={{ 
-                              width: `${entry.score}%`,
-                              backgroundColor: 'hsl(var(--success))',
-                              opacity: isCurrentRep ? 1 : 0.5
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-            <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-border">
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar 
+                  dataKey="practices" 
+                  name="Practice Sessions"
+                  fill="hsl(var(--primary))"
+                  radius={[0, 4, 4, 0]}
+                  opacity={0.3}
+                  barSize={16}
+                />
+                <Bar 
+                  dataKey="score" 
+                  name="Call Score"
+                  fill="hsl(var(--success))"
+                  radius={[0, 4, 4, 0]}
+                  barSize={16}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-border">
               <div className="flex items-center gap-2 text-sm">
-                <span className="w-3 h-3 rounded-full bg-primary" />
-                <span className="text-muted-foreground">Practice Volume</span>
+                <span className="w-3 h-3 rounded bg-primary/30" />
+                <span className="text-muted-foreground">Practice Sessions</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <span className="w-3 h-3 rounded-full bg-success" />
+                <span className="w-3 h-3 rounded bg-success" />
                 <span className="text-muted-foreground">Call Score</span>
               </div>
             </div>
