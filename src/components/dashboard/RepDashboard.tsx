@@ -1,234 +1,383 @@
 import { useNavigate } from "react-router-dom";
 import { 
-  Phone, 
   TrendingUp, 
+  TrendingDown,
   Target, 
-  Clock, 
   ChevronRight, 
   Play,
-  Star,
-  Flame,
+  AlertTriangle,
+  DollarSign,
+  Trophy,
   Zap,
-  Upload,
-  Video
+  ArrowUp,
+  ArrowDown,
+  Minus
 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import TeamRaceChart from "@/components/TeamRaceChart";
+import { Progress } from "@/components/ui/progress";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Area, AreaChart } from "recharts";
 
 const RepDashboard = () => {
   const navigate = useNavigate();
 
-  const todayStats = [
-    { label: "Calls Today", value: "4", change: "+2", icon: Phone, color: "text-primary" },
-    { label: "Avg Score", value: "78", change: "+5", icon: Target, color: "text-accent" },
-    { label: "Talk Time", value: "32m", change: "", icon: Clock, color: "text-orange-500" },
-    { label: "Streak", value: "5 days", change: "🔥", icon: Flame, color: "text-amber-500" },
+  // Mock data - Top 3 weaknesses detected from last 14 days / 15 calls
+  const weaknesses = [
+    {
+      id: 1,
+      name: "Objection Handling",
+      score: 62,
+      trend: -8,
+      callsAnalyzed: 15,
+      lostDeals: 3,
+      estimatedLostCommission: 4200,
+      topObjection: "Price too high",
+      practiceType: "objection-handling",
+      roleplayId: "obj-1",
+      insight: "You're losing deals when prospects push back on pricing. Practice reframing value."
+    },
+    {
+      id: 2,
+      name: "Discovery Questions",
+      score: 68,
+      trend: -5,
+      callsAnalyzed: 15,
+      lostDeals: 2,
+      estimatedLostCommission: 2800,
+      topObjection: "Shallow pain points",
+      practiceType: "discovery",
+      roleplayId: "disc-1",
+      insight: "Your discovery calls average 3 questions vs top reps' 7. Go deeper on pain."
+    },
+    {
+      id: 3,
+      name: "Closing Techniques",
+      score: 71,
+      trend: -3,
+      callsAnalyzed: 15,
+      lostDeals: 2,
+      estimatedLostCommission: 1900,
+      topObjection: "Weak trial closes",
+      practiceType: "closing",
+      roleplayId: "close-1",
+      insight: "You're not using trial closes early. Top reps ask for micro-commitments 4x per call."
+    }
   ];
 
-  const quickActions = [
-    { 
-      title: "Cold Call Practice", 
-      description: "Practice with a skeptical VP of Sales", 
-      icon: Phone,
-      color: "bg-blue-500",
-      onClick: () => navigate("/roleplays/1/start")
-    },
-    { 
-      title: "Warm Call Roleplay", 
-      description: "Handle a follow-up with existing lead", 
-      icon: Zap,
-      color: "bg-orange-500",
-      onClick: () => navigate("/roleplays/2/start")
-    },
-    { 
-      title: "Discovery Drill", 
-      description: "Master the SPICED framework", 
-      icon: Target,
-      color: "bg-purple-500",
-      onClick: () => navigate("/roleplays/3/start")
-    },
-    { 
-      title: "Upload Calls", 
-      description: "Analyze your real recordings", 
-      icon: Upload,
-      color: "bg-green-500",
-      onClick: () => navigate("/settings")
-    },
+  // Sales score trend data
+  const scoreTrendData = [
+    { day: "Mon", score: 74, topRep: 89 },
+    { day: "Tue", score: 71, topRep: 91 },
+    { day: "Wed", score: 78, topRep: 88 },
+    { day: "Thu", score: 73, topRep: 90 },
+    { day: "Fri", score: 76, topRep: 92 },
+    { day: "Sat", score: 72, topRep: 87 },
+    { day: "Today", score: 75, topRep: 91 },
   ];
 
-  const recentCalls = [
-    { id: "1", buyer: "Jane Bowen", role: "Director of Sales", score: 82, duration: "4:32", time: "2h ago" },
-    { id: "2", buyer: "Marcus Chen", role: "VP of Engineering", score: 71, duration: "3:15", time: "Yesterday" },
-    { id: "3", buyer: "Sarah Kim", role: "Founder & CEO", score: 88, duration: "5:45", time: "2 days ago" },
+  // Current score stats
+  const currentScore = 75;
+  const weekChange = -2;
+  const monthChange = +4;
+
+  // Competitive leaderboard
+  const leaderboard = [
+    { rank: 1, name: "Marcus Johnson", score: 91, trend: +3, isTopRep: true },
+    { rank: 2, name: "Emily Chen", score: 88, trend: +1 },
+    { rank: 3, name: "David Park", score: 85, trend: +2 },
+    { rank: 4, name: "You", score: 75, trend: -2, isCurrentUser: true },
+    { rank: 5, name: "Alex Rivera", score: 73, trend: -1 },
   ];
 
-  const recommendedRoleplays = [
-    { id: "1", buyer: "Logan Sullivan", role: "VP @ Salesforce", type: "Cold Call", trait: "Nice" },
-    { id: "2", buyer: "Mason Brooks", role: "Director @ Oracle", type: "Cold Call", trait: "Rude" },
-    { id: "3", buyer: "Ava Ramirez", role: "Innovation Lead @ Airbnb", type: "Discovery", trait: "Nice" },
-  ];
+  // Gap to top rep
+  const topRepScore = 91;
+  const gapToTop = topRepScore - currentScore;
+
+  const chartConfig = {
+    score: { label: "Your Score", color: "hsl(var(--primary))" },
+    topRep: { label: "Top Rep", color: "hsl(var(--accent))" },
+  };
+
+  const getTrendIcon = (trend: number) => {
+    if (trend > 0) return <ArrowUp className="w-3 h-3" />;
+    if (trend < 0) return <ArrowDown className="w-3 h-3" />;
+    return <Minus className="w-3 h-3" />;
+  };
+
+  const getTrendColor = (trend: number) => {
+    if (trend > 0) return "text-success";
+    if (trend < 0) return "text-destructive";
+    return "text-muted-foreground";
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-success";
+    if (score >= 70) return "text-warning";
+    return "text-destructive";
+  };
 
   return (
     <div className="space-y-6 md:space-y-8 animate-fade-in">
-      {/* Welcome Section */}
+      {/* Header - Action-oriented */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold">Good afternoon, Saad 👋</h1>
+          <h1 className="text-2xl md:text-3xl font-display font-bold">Your Improvement Hub</h1>
           <p className="text-muted-foreground mt-1">
-            You're on a 5-day streak! Keep it going.
+            Based on your last 15 calls • ~${(weaknesses.reduce((acc, w) => acc + w.estimatedLostCommission, 0)).toLocaleString()} potential commission at stake
           </p>
         </div>
-        <Button onClick={() => navigate("/roleplays")} className="gap-2 w-full sm:w-auto">
-          <Play className="w-4 h-4" />
-          Start Practice
-        </Button>
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-medium ${getTrendColor(weekChange)}`}>
+            {weekChange > 0 ? "+" : ""}{weekChange} pts this week
+          </span>
+        </div>
       </div>
 
-      {/* Today's Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        {todayStats.map((stat) => (
-          <Card key={stat.label} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => toast.info(`Viewing ${stat.label} details`)}>
-            <CardContent className="p-4 md:p-5">
-              <div className="flex items-center justify-between mb-2 md:mb-3">
-                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl bg-muted flex items-center justify-center ${stat.color}`}>
-                  <stat.icon className="w-4 h-4 md:w-5 md:h-5" />
-                </div>
-                {stat.change && (
-                  <span className="text-xs font-medium text-success flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    {stat.change}
-                  </span>
-                )}
-              </div>
-              <p className="text-xl md:text-2xl font-bold">{stat.value}</p>
-              <p className="text-xs md:text-sm text-muted-foreground">{stat.label}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Quick Actions */}
+      {/* Top 3 Weaknesses - Main Focus */}
       <div>
-        <h2 className="text-base md:text-lg font-display font-semibold mb-3 md:mb-4">Daily Warmups & Skill Drills</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          {quickActions.map((action) => (
+        <div className="flex items-center gap-2 mb-4">
+          <AlertTriangle className="w-5 h-5 text-warning" />
+          <h2 className="text-lg font-display font-semibold">Focus Areas</h2>
+          <span className="text-sm text-muted-foreground">• Detected from last 14 days</span>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {weaknesses.map((weakness, index) => (
             <Card 
-              key={action.title}
-              className="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 group"
-              onClick={action.onClick}
+              key={weakness.id} 
+              className="relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 group cursor-pointer border-l-4"
+              style={{ 
+                borderLeftColor: index === 0 ? 'hsl(var(--destructive))' : index === 1 ? 'hsl(var(--warning))' : 'hsl(var(--warning) / 0.7)' 
+              }}
+              onClick={() => navigate(`/roleplays/${weakness.roleplayId}/start`)}
             >
-              <CardContent className="p-4 md:p-5">
-                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl ${action.color} flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 transition-transform`}>
-                  <action.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              <CardContent className="p-5">
+                {/* Priority Badge */}
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                    index === 0 ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning-foreground'
+                  }`}>
+                    #{index + 1} Priority
+                  </span>
+                  <div className={`flex items-center gap-1 text-xs font-medium ${getTrendColor(weakness.trend)}`}>
+                    {getTrendIcon(weakness.trend)}
+                    {Math.abs(weakness.trend)} pts
+                  </div>
                 </div>
-                <h3 className="font-semibold mb-1 text-sm md:text-base">{action.title}</h3>
-                <p className="text-xs md:text-sm text-muted-foreground">{action.description}</p>
+
+                {/* Weakness Name & Score */}
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-base">{weakness.name}</h3>
+                  <span className={`text-2xl font-bold ${getScoreColor(weakness.score)}`}>
+                    {weakness.score}
+                  </span>
+                </div>
+
+                {/* Progress Bar */}
+                <Progress value={weakness.score} className="h-2 mb-3" />
+
+                {/* Lost Commission Alert */}
+                <div className="flex items-center gap-2 p-2.5 bg-destructive/5 rounded-lg mb-3 border border-destructive/10">
+                  <DollarSign className="w-4 h-4 text-destructive" />
+                  <span className="text-xs">
+                    <span className="font-semibold text-destructive">~${weakness.estimatedLostCommission.toLocaleString()}</span>
+                    <span className="text-muted-foreground"> lost from "{weakness.topObjection}"</span>
+                  </span>
+                </div>
+
+                {/* Insight */}
+                <p className="text-xs text-muted-foreground mb-4 line-clamp-2">
+                  {weakness.insight}
+                </p>
+
+                {/* CTA */}
+                <Button 
+                  className="w-full gap-2 group-hover:bg-primary/90" 
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/roleplays/${weakness.roleplayId}/start`);
+                  }}
+                >
+                  <Play className="w-4 h-4" />
+                  Practice Now
+                </Button>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
 
-      {/* Team Race & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* Team Race Chart */}
-        <Card>
-          <CardContent className="p-5">
-            <TeamRaceChart />
-          </CardContent>
-        </Card>
-
-        {/* Recent Calls */}
-        <Card>
-          <CardHeader className="flex-row items-center justify-between pb-2 md:pb-4">
-            <CardTitle className="text-base md:text-lg">Recent Calls</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/calls")} className="gap-1 text-xs md:text-sm">
-              View all <ChevronRight className="w-4 h-4" />
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-2 md:space-y-3">
-            {recentCalls.map((call) => (
-              <div 
-                key={call.id}
-                onClick={() => navigate(`/calls/${call.id}`)}
-                className="flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-xl hover:bg-muted cursor-pointer transition-colors"
-              >
-                <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-semibold text-primary text-sm md:text-base">
-                  {call.buyer.split(" ").map(n => n[0]).join("")}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm md:text-base truncate">{call.buyer}</p>
-                  <p className="text-xs md:text-sm text-muted-foreground truncate">{call.role}</p>
-                </div>
-                <div className="text-right hidden sm:block">
-                  <p className={`font-bold text-sm md:text-base ${call.score >= 80 ? "text-success" : call.score >= 70 ? "text-warning" : "text-destructive"}`}>
-                    {call.score}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{call.duration}</p>
-                </div>
-                <p className="text-xs text-muted-foreground w-16 md:w-20 text-right hidden md:block">{call.time}</p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-
+      {/* Score Trend & Competitive Context */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* Recommended Roleplays */}
+        {/* Sales Score Trend */}
         <Card className="lg:col-span-2">
-          <CardHeader className="pb-2 md:pb-4">
-            <CardTitle className="text-base md:text-lg flex items-center gap-2">
-              <Star className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
-              Recommended for You
-            </CardTitle>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
+                Sales Score Trend
+              </CardTitle>
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-primary" />
+                  <span className="text-muted-foreground">You</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-accent" />
+                  <span className="text-muted-foreground">Top Rep</span>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {recommendedRoleplays.map((roleplay) => (
-                <div 
-                  key={roleplay.id}
-                  onClick={() => navigate(`/roleplays/${roleplay.id}/start`)}
-                  className="p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/50 cursor-pointer transition-all group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-medium text-sm">{roleplay.buyer}</p>
-                    <span className={`badge-trait text-xs ${roleplay.trait === "Nice" ? "badge-nice" : "badge-rude"}`}>
-                      {roleplay.trait}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-2">{roleplay.role}</p>
-                  <div className="flex items-center justify-between">
-                    <span className={`badge-trait text-xs ${roleplay.type === "Cold Call" ? "badge-cold" : "badge-warm"}`}>
-                      {roleplay.type}
-                    </span>
-                    <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs">
-                      Start <Play className="w-3 h-3 ml-1" />
-                    </Button>
-                  </div>
+            {/* Score Summary */}
+            <div className="flex items-center gap-6 mb-4 pb-4 border-b border-border">
+              <div>
+                <p className="text-3xl font-bold">{currentScore}</p>
+                <p className="text-sm text-muted-foreground">Current Score</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className={`flex items-center gap-1 ${getTrendColor(weekChange)}`}>
+                  {weekChange > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                  <span className="text-sm font-medium">{weekChange > 0 ? "+" : ""}{weekChange} 7d</span>
                 </div>
-              ))}
+                <div className={`flex items-center gap-1 ${getTrendColor(monthChange)}`}>
+                  {monthChange > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                  <span className="text-sm font-medium">{monthChange > 0 ? "+" : ""}{monthChange} 30d</span>
+                </div>
+              </div>
+              <div className="ml-auto text-right">
+                <p className="text-sm font-medium text-destructive">-{gapToTop} pts behind top rep</p>
+                <p className="text-xs text-muted-foreground">Close the gap with focused practice</p>
+              </div>
             </div>
+
+            {/* Chart */}
+            <ChartContainer config={chartConfig} className="h-[180px] w-full">
+              <AreaChart data={scoreTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="fillScore" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                <YAxis domain={[60, 100]} axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Area
+                  type="monotone"
+                  dataKey="score"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  fill="url(#fillScore)"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="topRep"
+                  stroke="hsl(var(--accent))"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={false}
+                />
+              </AreaChart>
+            </ChartContainer>
           </CardContent>
         </Card>
 
-        {/* Call Integration Promo */}
-        <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-          <CardContent className="p-5">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-              <Video className="w-6 h-6 text-primary" />
+        {/* Mini Leaderboard */}
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-gold" />
+                Team Ranking
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/leaderboard")} className="text-xs">
+                Full Board <ChevronRight className="w-3 h-3 ml-1" />
+              </Button>
             </div>
-            <h3 className="font-semibold mb-2">Connect Your Calls</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Link Fathom or upload recordings to get real-time analysis of your actual sales calls.
-            </p>
-            <Button size="sm" onClick={() => navigate("/settings")} className="w-full">
-              Set Up Integrations
-            </Button>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {leaderboard.map((member) => (
+              <div 
+                key={member.rank}
+                className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
+                  member.isCurrentUser 
+                    ? 'bg-primary/10 border border-primary/20' 
+                    : 'hover:bg-muted'
+                }`}
+              >
+                {/* Rank */}
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                  member.rank === 1 ? 'bg-gradient-to-br from-amber-400 to-amber-500 text-white' :
+                  member.rank === 2 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white' :
+                  member.rank === 3 ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' :
+                  'bg-muted text-muted-foreground'
+                }`}>
+                  {member.rank}
+                </div>
+
+                {/* Name */}
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-medium truncate ${member.isCurrentUser ? 'text-primary' : ''}`}>
+                    {member.name}
+                    {member.isTopRep && <Zap className="w-3 h-3 inline ml-1 text-accent" />}
+                  </p>
+                </div>
+
+                {/* Score & Trend */}
+                <div className="text-right">
+                  <p className="text-sm font-bold">{member.score}</p>
+                  <p className={`text-xs flex items-center justify-end gap-0.5 ${getTrendColor(member.trend)}`}>
+                    {getTrendIcon(member.trend)}
+                    {Math.abs(member.trend)}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {/* Gap Indicator */}
+            <div className="pt-3 mt-3 border-t border-border">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Gap to #1:</span>
+                <span className="font-bold text-destructive">-{gapToTop} pts</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                3 focused practice sessions could close this gap
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Win Section */}
+      <Card className="bg-gradient-to-r from-primary/5 via-transparent to-accent/5 border-primary/20">
+        <CardContent className="p-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Zap className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Quick Win: 15-min Objection Drill</h3>
+                <p className="text-sm text-muted-foreground">
+                  Practice the "Price too high" objection that cost you 3 deals this week
+                </p>
+              </div>
+            </div>
+            <Button onClick={() => navigate("/roleplays/obj-1/start")} className="gap-2 shrink-0">
+              <Play className="w-4 h-4" />
+              Start Drill
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
